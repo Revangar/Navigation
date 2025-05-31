@@ -1,10 +1,3 @@
-//
-//  AppDelegate.swift
-//  Navigation
-//
-//  Created by Revangar on 29.05.2025.
-//
-
 import UIKit
 
 @main
