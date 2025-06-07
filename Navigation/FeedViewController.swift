@@ -1,10 +1,32 @@
 import UIKit
 
 class FeedViewController: UIViewController {
-    private let showPostButton: UIButton = {
+    private let stackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.distribution = .fillEqually
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
+    private let firstPostButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Open Post", for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Открыть первый пост", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemBlue
+        button.layer.cornerRadius = 8
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        return button
+    }()
+    
+    private let secondPostButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Открыть второй пост", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemGreen
+        button.layer.cornerRadius = 8
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         return button
     }()
 
@@ -12,18 +34,39 @@ class FeedViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Feed"
-        view.addSubview(showPostButton)
+        setupUI()
+        setupConstraints()
+        setupActions()
+    }
+    
+    private func setupUI() {
+        view.addSubview(stackView)
+        stackView.addArrangedSubview(firstPostButton)
+        stackView.addArrangedSubview(secondPostButton)
+    }
+    
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
-            showPostButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            showPostButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            showPostButton.widthAnchor.constraint(equalToConstant: 200),
-            showPostButton.heightAnchor.constraint(equalToConstant: 50)
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.widthAnchor.constraint(equalToConstant: 200),
+            stackView.heightAnchor.constraint(equalToConstant: 110)
         ])
-        showPostButton.addTarget(self, action: #selector(openPost), for: .touchUpInside)
+    }
+    
+    private func setupActions() {
+        firstPostButton.addTarget(self, action: #selector(openFirstPost), for: .touchUpInside)
+        secondPostButton.addTarget(self, action: #selector(openSecondPost), for: .touchUpInside)
     }
 
-    @objc func openPost() {
-        let post = Post(title: "My Post Title")
+    @objc private func openFirstPost() {
+        let post = Post(title: "Первый пост")
+        let vc = PostViewController(post: post)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    @objc private func openSecondPost() {
+        let post = Post(title: "Второй пост")
         let vc = PostViewController(post: post)
         navigationController?.pushViewController(vc, animated: true)
     }
