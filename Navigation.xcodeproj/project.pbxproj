@@ -6,14 +6,7 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		B0D526582DEB0533009A79E8 /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D526552DEB00B0009A79E8 /* ProfileHeaderView.swift */; };
-		B0D526592DEB053F009A79E8 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D526542DEB00A4009A79E8 /* ProfileViewController.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		B0D526542DEB00A4009A79E8 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
-		B0D526552DEB00B0009A79E8 /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
 		B0FD4E172DD67F46001C2554 /* Navigation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Navigation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -49,19 +42,9 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		B0D526532DEB008A009A79E8 /* Profile */ = {
-			isa = PBXGroup;
-			children = (
-				B0D526552DEB00B0009A79E8 /* ProfileHeaderView.swift */,
-				B0D526542DEB00A4009A79E8 /* ProfileViewController.swift */,
-			);
-			path = Profile;
-			sourceTree = "<group>";
-		};
 		B0FD4E0E2DD67F46001C2554 = {
 			isa = PBXGroup;
 			children = (
-				B0D526532DEB008A009A79E8 /* Profile */,
 				B0FD4E192DD67F46001C2554 /* Navigation */,
 				B0FD4E182DD67F46001C2554 /* Products */,
 			);
@@ -149,8 +132,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B0D526582DEB0533009A79E8 /* ProfileHeaderView.swift in Sources */,
-				B0D526592DEB053F009A79E8 /* ProfileViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
