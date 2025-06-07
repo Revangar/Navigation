@@ -5,8 +5,12 @@ class ProfileViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGray6
+        view.backgroundColor = .lightGray
         title = "Profile"
+        setupUI()
+    }
+    
+    private func setupUI() {
         view.addSubview(headerView)
     }
 
