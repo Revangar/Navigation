@@ -1,78 +1,91 @@
 import UIKit
 
 class ProfileHeaderView: UIView {
-    // Avatar image view
+    
+    // MARK: - UI Elements
     private let avatarImageView: UIImageView = {
         let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
         imageView.layer.cornerRadius = 55
         imageView.layer.masksToBounds = true
-        imageView.contentMode = .scaleAspectFill
+        imageView.layer.borderWidth = 3
+        imageView.layer.borderColor = UIColor.white.cgColor
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
-    // Full name label
     private let fullNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Илья Петров"
+        label.text = "Hipster Cat"
         label.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        label.textColor = .label
+        label.textColor = .black
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    // Status label
     private let statusLabel: UILabel = {
         let label = UILabel()
-        label.text = "Изучаю iOS разработку"
+        label.text = "Waiting for something..."
         label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        label.textColor = .systemGray
+        label.textColor = .gray
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    // Status text field
     private let statusTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Введите новый статус"
-        textField.font = UIFont.systemFont(ofSize: 15)
-        textField.borderStyle = .roundedRect
+        textField.placeholder = "Set your status.."
+        textField.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        textField.textColor = .black
+        textField.backgroundColor = .white
         textField.layer.cornerRadius = 12
-        textField.backgroundColor = .systemBackground
         textField.layer.borderWidth = 1
-        textField.layer.borderColor = UIColor.systemGray4.cgColor
+        textField.layer.borderColor = UIColor.black.cgColor
         textField.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Добавляем отступы
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
+        textField.leftView = paddingView
+        textField.leftViewMode = .always
+        
         return textField
     }()
     
-    // Set status button
     private let setStatusButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Установить статус", for: .normal)
+        button.setTitle("Set status", for: .normal)
         button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = .systemBlue
         button.layer.cornerRadius = 4
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 4, height: 4)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.7
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    private var statusText: String = ""
-    
+    // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
+        setupView()
         setupConstraints()
         setupActions()
         setupAvatar()
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        setupView()
+        setupConstraints()
+        setupActions()
+        setupAvatar()
     }
     
-    private func setupUI() {
-        backgroundColor = .systemBackground
+    // MARK: - Setup Methods
+    private func setupView() {
+        backgroundColor = .white
         
         addSubview(avatarImageView)
         addSubview(fullNameLabel)
@@ -81,52 +94,80 @@ class ProfileHeaderView: UIView {
         addSubview(setStatusButton)
     }
     
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // Avatar constraints
+            avatarImageView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            avatarImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            avatarImageView.widthAnchor.constraint(equalToConstant: 110),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 110),
+            
+            // Full name label constraints
+            fullNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 27),
+            fullNameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
+            fullNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+            
+            // Status label constraints
+            statusLabel.topAnchor.constraint(equalTo: fullNameLabel.bottomAnchor, constant: 8),
+            statusLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
+            statusLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+            
+            // Status text field constraints
+            statusTextField.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 16),
+            statusTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            statusTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            statusTextField.heightAnchor.constraint(equalToConstant: 40),
+            
+            // Set status button constraints
+            setStatusButton.topAnchor.constraint(equalTo: statusTextField.bottomAnchor, constant: 16),
+            setStatusButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            setStatusButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            setStatusButton.heightAnchor.constraint(equalToConstant: 50),
+            setStatusButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+        ])
+    }
+    
+    private func setupActions() {
+        setStatusButton.addTarget(self, action: #selector(setStatusButtonTapped), for: .touchUpInside)
+    }
+    
     private func setupAvatar() {
-        // Загружаем изображение аватара
+        // Пытаемся загрузить изображение из Assets
         if let avatarImage = UIImage(named: "avatar") {
-            print("✅ Avatar image loaded successfully!")
             avatarImageView.image = avatarImage
-            avatarImageView.backgroundColor = .clear
         } else {
-            print("❌ Avatar image not found, using programmatic avatar")
-            // Создаем красивый программный аватар
-            avatarImageView.image = createAvatarImage(with: "ИП", size: CGSize(width: 110, height: 110))
-            avatarImageView.backgroundColor = .clear
+            // Создаем программный аватар с градиентом
+            createProgrammaticAvatar()
         }
     }
     
-    private func createAvatarImage(with initials: String, size: CGSize) -> UIImage {
-        // Защита от некорректных размеров
-        guard size.width > 0, size.height > 0 else {
-            print("⚠️ Warning: Invalid size for avatar creation")
-            return UIImage() // Возвращаем пустое изображение
-        }
-        
+    private func createProgrammaticAvatar() {
+        let size = CGSize(width: 110, height: 110)
         let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { context in
-            // Создаем градиентный фон
+        
+        let avatarImage = renderer.image { context in
+            // Создаем градиент
             let colorSpace = CGColorSpaceCreateDeviceRGB()
             let colors = [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor]
+            let gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: nil)!
             
-            guard let gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: nil) else {
-                print("⚠️ Warning: Could not create gradient")
-                // Используем однотонный фон как fallback
-                UIColor.systemBlue.setFill()
-                UIRectFill(CGRect(origin: .zero, size: size))
-                return
-            }
+            // Рисуем градиентный круг
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let radius = min(size.width, size.height) / 2
             
-            context.cgContext.drawLinearGradient(
+            context.cgContext.drawRadialGradient(
                 gradient,
-                start: CGPoint(x: 0, y: 0),
-                end: CGPoint(x: size.width, y: size.height),
+                startCenter: center,
+                startRadius: 0,
+                endCenter: center,
+                endRadius: radius,
                 options: []
             )
             
-            // Добавляем инициалы с защитой от ошибок
-            let fontSize = min(size.width, size.height) * 0.4 // Адаптивный размер шрифта
+            // Добавляем инициалы
+            let initials = "HC"
             let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: fontSize, weight: .medium),
+                .font: UIFont.systemFont(ofSize: 36, weight: .bold),
                 .foregroundColor: UIColor.white
             ]
             
@@ -140,86 +181,21 @@ class ProfileHeaderView: UIView {
             
             initials.draw(in: textRect, withAttributes: attributes)
         }
-    }
-    
-    private func setupConstraints() {
-        NSLayoutConstraint.activate([
-            // Avatar constraints - четкие размеры
-            avatarImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 12),
-            avatarImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            avatarImageView.widthAnchor.constraint(equalToConstant: 110),
-            avatarImageView.heightAnchor.constraint(equalToConstant: 110),
-            
-            // Full name label constraints - фиксированные размеры
-            fullNameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
-            fullNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
-            fullNameLabel.topAnchor.constraint(equalTo: avatarImageView.topAnchor, constant: 25),
-            fullNameLabel.heightAnchor.constraint(equalToConstant: 22),
-            
-            // Status label constraints - фиксированные размеры
-            statusLabel.leadingAnchor.constraint(equalTo: fullNameLabel.leadingAnchor),
-            statusLabel.trailingAnchor.constraint(lessThanOrEqualTo: fullNameLabel.trailingAnchor),
-            statusLabel.topAnchor.constraint(equalTo: fullNameLabel.bottomAnchor, constant: 8),
-            statusLabel.heightAnchor.constraint(equalToConstant: 18),
-            
-            // Status text field constraints - четкие размеры
-            statusTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            statusTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            statusTextField.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 12),
-            statusTextField.heightAnchor.constraint(equalToConstant: 40),
-            
-            // Set status button constraints - фиксированные размеры и позиция
-            setStatusButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            setStatusButton.topAnchor.constraint(equalTo: statusTextField.bottomAnchor, constant: 8),
-            setStatusButton.widthAnchor.constraint(equalToConstant: 150),
-            setStatusButton.heightAnchor.constraint(equalToConstant: 35)
-        ])
         
-        // Добавляем constraint с низким приоритетом для bottomAnchor
-        let bottomConstraint = setStatusButton.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -12)
-        bottomConstraint.priority = UILayoutPriority(999) // Чуть ниже required
-        bottomConstraint.isActive = true
+        avatarImageView.image = avatarImage
     }
     
-    private func setupActions() {
-        setStatusButton.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
-        statusTextField.addTarget(self, action: #selector(statusTextChanged), for: .editingChanged)
-    }
-    
-    @objc private func statusTextChanged(_ textField: UITextField) {
-        statusText = textField.text ?? ""
-    }
-    
-    @objc private func buttonPressed() {
-        // Защита от одновременных нажатий
-        setStatusButton.isEnabled = false
+    // MARK: - Actions
+    @objc private func setStatusButtonTapped() {
+        guard let newStatus = statusTextField.text, !newStatus.isEmpty else { return }
         
-        DispatchQueue.main.async { [weak self] in
-            defer {
-                // Возвращаем кнопку в активное состояние через небольшую задержку
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    self?.setStatusButton.isEnabled = true
-                }
-            }
-            
-            guard let self = self else { return }
-            
-            if !self.statusText.isEmpty {
-                self.statusLabel.text = self.statusText
-                self.statusTextField.text = ""
-                self.statusText = ""
-                
-                // Плавная анимация обновления
-                UIView.animate(withDuration: 0.2) {
-                    self.statusLabel.alpha = 0.7
-                } completion: { _ in
-                    UIView.animate(withDuration: 0.2) {
-                        self.statusLabel.alpha = 1.0
-                    }
-                }
-            }
-            
-            print("Status text: '\(self.statusLabel.text ?? "")'")
-        }
+        // Анимация обновления статуса
+        UIView.transition(with: statusLabel, duration: 0.3, options: .transitionCrossDissolve, animations: {
+            self.statusLabel.text = newStatus
+        }, completion: nil)
+        
+        // Очищаем текстовое поле
+        statusTextField.text = ""
+        statusTextField.resignFirstResponder()
     }
 }
