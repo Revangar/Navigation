@@ -60,13 +60,25 @@ class FeedViewController: UIViewController {
     }
 
     @objc private func openFirstPost() {
-        let post = Post(title: "Первый пост")
+        let post = Post(
+            author: "Первый автор",
+            description: "Описание первого поста",
+            image: "post1",
+            likes: 100,
+            views: 150
+        )
         let vc = PostViewController(post: post)
         navigationController?.pushViewController(vc, animated: true)
     }
     
     @objc private func openSecondPost() {
-        let post = Post(title: "Второй пост")
+        let post = Post(
+            author: "Второй автор",
+            description: "Описание второго поста",
+            image: "post2",
+            likes: 200,
+            views: 250
+        )
         let vc = PostViewController(post: post)
         navigationController?.pushViewController(vc, animated: true)
     }
