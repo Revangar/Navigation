@@ -28,7 +28,7 @@ class InfoViewController: UIViewController {
         ])
         showAlertButton.addTarget(self, action: #selector(showAlert), for: .touchUpInside)
     }
-
+ 
     @objc func showAlert() {
         let alert = UIAlertController(title: "Info", message: "Some info here", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in

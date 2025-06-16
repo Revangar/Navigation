@@ -7,3 +7,4 @@ struct Post {
     let likes: Int          // количество лайков
     let views: Int          // количество просмотров
 }
+ 

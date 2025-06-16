@@ -29,7 +29,7 @@ class FeedViewController: UIViewController {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         return button
     }()
-
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
