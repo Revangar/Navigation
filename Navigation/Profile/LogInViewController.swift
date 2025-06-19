@@ -17,30 +17,54 @@ class LogInViewController: UIViewController {
     
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "vk_logo")
+        imageView.image = UIImage(named: "logo")
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
      
+    // Новый стек для текстфилдов
+    private let textFieldsStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 0
+        stack.distribution = .fill
+        stack.alignment = .fill
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.backgroundColor = .systemGray6
+        stack.layer.cornerRadius = 10
+        stack.layer.borderWidth = 0.5
+        stack.layer.borderColor = UIColor.lightGray.cgColor
+        stack.isLayoutMarginsRelativeArrangement = true
+        return stack
+    }()
+
+    // Разделитель
+    private let separatorView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .lightGray
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private let emailTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Email or phone"
         textField.borderStyle = .none
-        textField.backgroundColor = UIColor.systemGray6
-        textField.layer.cornerRadius = 10
-        textField.font = UIFont.systemFont(ofSize: 16)
+        textField.backgroundColor = .clear
+        textField.layer.cornerRadius = 0
+        textField.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         textField.textColor = .black
         textField.autocapitalizationType = .none
+        textField.tintColor = .systemBlue // accentColor
         textField.translatesAutoresizingMaskIntoConstraints = false
-         
         // Добавляем отступы
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
         textField.leftView = paddingView
         textField.leftViewMode = .always
-        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
+        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
         textField.rightViewMode = .always
-        
+        textField.heightAnchor.constraint(equalToConstant: 50).isActive = true
         return textField
     }()
     
@@ -48,20 +72,20 @@ class LogInViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "Password"
         textField.borderStyle = .none
-        textField.backgroundColor = UIColor.systemGray6
-        textField.layer.cornerRadius = 10
-        textField.font = UIFont.systemFont(ofSize: 16)
+        textField.backgroundColor = .clear
+        textField.layer.cornerRadius = 0
+        textField.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         textField.textColor = .black
         textField.isSecureTextEntry = true
+        textField.tintColor = .systemBlue // accentColor
         textField.translatesAutoresizingMaskIntoConstraints = false
-        
         // Добавляем отступы
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
         textField.leftView = paddingView
         textField.leftViewMode = .always
-        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
+        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
         textField.rightViewMode = .always
-        
+        textField.heightAnchor.constraint(equalToConstant: 50).isActive = true
         return textField
     }()
     
@@ -69,16 +93,17 @@ class LogInViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Log In", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.backgroundColor = UIColor(named: "VKColor")
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
         button.layer.cornerRadius = 10
+        button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Устанавливаем фоновое изображение из blue_pixel
         if let bluePixelImage = UIImage(named: "blue_pixel") {
             button.setBackgroundImage(bluePixelImage, for: .normal)
         }
-        
+        button.alpha = 1.0
+        button.setTitleColor(.white, for: .selected)
+        button.setTitleColor(.white, for: .highlighted)
+        button.setTitleColor(.white, for: .disabled)
         return button
     }()
     
@@ -113,9 +138,14 @@ class LogInViewController: UIViewController {
         scrollView.addSubview(contentView)
         
         contentView.addSubview(logoImageView)
-        contentView.addSubview(emailTextField)
-        contentView.addSubview(passwordTextField)
+        // Добавляем стек
+        contentView.addSubview(textFieldsStackView)
         contentView.addSubview(logInButton)
+
+        // Добавляем текстфилды и разделитель в стек
+        textFieldsStackView.addArrangedSubview(emailTextField)
+        textFieldsStackView.addArrangedSubview(separatorView)
+        textFieldsStackView.addArrangedSubview(passwordTextField)
     }
     
     private func setupConstraints() {
@@ -139,20 +169,17 @@ class LogInViewController: UIViewController {
             logoImageView.widthAnchor.constraint(equalToConstant: 100),
             logoImageView.heightAnchor.constraint(equalToConstant: 100),
             
-            // Email TextField constraints
-            emailTextField.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 120),
-            emailTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            emailTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            emailTextField.heightAnchor.constraint(equalToConstant: 50),
-            
-            // Password TextField constraints
-            passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
-            passwordTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            passwordTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            passwordTextField.heightAnchor.constraint(equalToConstant: 50),
-            
+            // StackView с текстфилдами
+            textFieldsStackView.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 120),
+            textFieldsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            textFieldsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            textFieldsStackView.heightAnchor.constraint(equalToConstant: 100),
+
+            // separatorView высота
+            separatorView.heightAnchor.constraint(equalToConstant: 0.5),
+
             // Login Button constraints
-            logInButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 16),
+            logInButton.topAnchor.constraint(equalTo: textFieldsStackView.bottomAnchor, constant: 16),
             logInButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             logInButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             logInButton.heightAnchor.constraint(equalToConstant: 50),

@@ -65,7 +65,7 @@ class ProfileViewController: UIViewController {
         tableView.tableHeaderView = headerView
         
         // Нужно установить размер header view
-        headerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 220)
+        headerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 230)
     }
      
     private func setupConstraints() {
