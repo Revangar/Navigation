@@ -10,36 +10,7 @@ class ProfileViewController: UIViewController {
         return tableView
     }()
     
-    private let posts: [Post] = [
-        Post(
-            author: "Нетология. Меряем карьеру через образование.",
-            description: "От 'Hello, World' до первого сложного iOS-приложения — всего один курс. Если чувствуете в себе силу для покорения топов AppStore — пора начинать действовать! Профессия «iOS-разработчик» — тот самый путь, по которому стоит пройти до самого конца. Вы научитесь создавать приложения на языке Swift с нуля: от начинки до интерфейса. Чтобы закрепить знания на практике, каждый студент подготовит дипломную работу — VK-like приложение с возможностью публиковать фотографии, использовать фильтры, ставить лайки и подписываться на других пользователей.",
-            image: "post1",
-            likes: 766,
-            views: 893
-        ),
-        Post(
-            author: "vedmak.official",
-            description: "Новые кадры со съемок второго сезона сериала \"Ведьмак\"",
-            image: "post2",
-            likes: 240,
-            views: 312
-        ),
-        Post(
-            author: "appleinsider.ru", 
-            description: "Слухи: Apple работает над складным iPhone с двумя экранами",
-            image: "post3",
-            likes: 156,
-            views: 289
-        ),
-        Post(
-            author: "swift.programming",
-            description: "SwiftUI vs UIKit: какой фреймворк выбрать для разработки в 2024 году? Разбираем плюсы и минусы каждого подхода.",
-            image: "post4",
-            likes: 324,
-            views: 445
-        )
-    ]
+    private let posts = PostsStorage.posts
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
