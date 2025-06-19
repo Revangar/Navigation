@@ -21,7 +21,7 @@ final class ProfileHeaderView: UIView {
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
     }()
-
+ 
     private let statusLabel: UILabel = {
         let lbl = UILabel()
         lbl.text      = "Waiting for something..."

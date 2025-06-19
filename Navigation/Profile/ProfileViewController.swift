@@ -67,7 +67,7 @@ class ProfileViewController: UIViewController {
         // Нужно установить размер header view
         headerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 220)
     }
-    
+     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
