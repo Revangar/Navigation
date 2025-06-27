@@ -30,13 +30,6 @@ class ProfileViewController: UIViewController {
         
         // Регистрируем ячейку
         tableView.register(PostTableViewCell.self, forCellReuseIdentifier: "PostTableViewCell")
-        
-        // Устанавливаем header для секции
-        let headerView = ProfileHeaderView()
-        tableView.tableHeaderView = headerView
-        
-        // Нужно установить размер header view
-        headerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 230)
     }
      
     private func setupConstraints() {
@@ -70,7 +63,7 @@ extension ProfileViewController: UITableViewDataSource {
     }
 }
 
-// MARK: - UITableViewDelegate  
+// MARK: - UITableViewDelegate
 extension ProfileViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
@@ -79,4 +72,18 @@ extension ProfileViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         return 400
     }
-} 
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if section == 0 {
+            return ProfileHeaderView()
+        }
+        return nil
+    }
+
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if section == 0 {
+            return 230
+        }
+        return 0
+    }
+}
