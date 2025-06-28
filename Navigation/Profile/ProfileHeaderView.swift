@@ -61,16 +61,12 @@ final class ProfileHeaderView: UIView {
         return button
     }()
 
-    // MARK: - State
-    private var isEditingStatus = false
-
     // MARK: init
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemGray5
         addSubviews()
-        statusTextField.isHidden = true
-        actionButton.setTitle("Show status", for: .normal)
+        actionButton.setTitle("Set status", for: .normal)
         activateConstraints()
         configureAvatar()
         actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
@@ -80,8 +76,7 @@ final class ProfileHeaderView: UIView {
         super.init(coder: coder)
         backgroundColor = .systemGray5
         addSubviews()
-        statusTextField.isHidden = true
-        actionButton.setTitle("Show status", for: .normal)
+        actionButton.setTitle("Set status", for: .normal)
         activateConstraints()
         configureAvatar()
         actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
@@ -134,17 +129,9 @@ final class ProfileHeaderView: UIView {
 
     // MARK: кнопка
     @objc private func buttonTapped() {
-        if isEditingStatus {
-            guard let text = statusTextField.text, !text.isEmpty else { return }
-            statusLabel.text = text
-            statusTextField.text = ""
-            statusTextField.isHidden = true
-            actionButton.setTitle("Show status", for: .normal)
-        } else {
-            statusTextField.isHidden = false
-            actionButton.setTitle("Set status", for: .normal)
-        }
-        isEditingStatus.toggle()
+        guard let text = statusTextField.text, !text.isEmpty else { return }
+        statusLabel.text = text
+        statusTextField.text = ""
     }
 
     // MARK: – аватар-заглушка
