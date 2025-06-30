@@ -2,155 +2,159 @@ import UIKit
 
 final class ProfileHeaderView: UIView {
 
-    // MARK: - UI-элементы
+    // MARK: UI-элементы
     private let avatarImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode           = .scaleAspectFill
-        iv.layer.masksToBounds   = true
-        iv.layer.borderWidth     = 3
-        iv.layer.borderColor     = UIColor.white.cgColor
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 3
+        imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
 
     private let fullNameLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.text      = "Hipster Cat"
-        lbl.font      = .systemFont(ofSize: 18, weight: .bold)
-        lbl.textColor = .black
-        lbl.translatesAutoresizingMaskIntoConstraints = false
-        return lbl
+        let label = UILabel()
+        label.text = "Hipster Cat"
+        label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.textColor = .black
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
- 
+
     private let statusLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.text      = "Waiting for something..."
-        lbl.font      = .systemFont(ofSize: 14, weight: .regular)
-        lbl.textColor = .gray
-        lbl.translatesAutoresizingMaskIntoConstraints = false
-        return lbl
+        let label = UILabel()
+        label.text = "Waiting for something..."
+        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.textColor = .gray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
 
     private let statusTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder        = "Set your status.."
-        tf.font               = .systemFont(ofSize: 15)
-        tf.textColor          = .black
-        tf.backgroundColor    = .white
-        tf.layer.cornerRadius = 12
-        tf.layer.borderWidth  = 1
-        tf.layer.borderColor  = UIColor.black.cgColor
-        tf.leftView           = UIView(frame: .init(x: 0, y: 0, width: 15, height: 40))
-        tf.leftViewMode       = .always
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
+        let textField = UITextField()
+        textField.placeholder = "Set your status.."
+        textField.font = .systemFont(ofSize: 15, weight: .regular)
+        textField.textColor = .black
+        textField.backgroundColor = .white
+        textField.layer.cornerRadius = 12
+        textField.layer.borderWidth = 1
+        textField.layer.borderColor = UIColor.black.cgColor
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: 40))
+        textField.leftViewMode = .always
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
     }()
 
     private let actionButton: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.setTitle("Show status", for: .normal)
-        btn.setTitleColor(.white, for: .normal)
-        btn.titleLabel?.font   = .systemFont(ofSize: 16, weight: .medium)
-        btn.backgroundColor    = .systemBlue
-        btn.layer.cornerRadius = 4
-        btn.layer.shadowColor  = UIColor.black.cgColor
-        btn.layer.shadowOffset = CGSize(width: 4, height: 4)
-        btn.layer.shadowRadius = 4
-        btn.layer.shadowOpacity = 0.7
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        return btn
+        let button = UIButton(type: .system)
+        button.setTitle("Show status", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.backgroundColor = .systemBlue
+        button.layer.cornerRadius = 12
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 4, height: 4)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.7
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
 
-    // MARK: - Private
-    private let statusOffset: CGFloat = 8          // «чуть ниже» в режиме просмотра
-    private var isEditingStatus = false
-
-    // MARK: - Init
-    override init(frame: CGRect) { super.init(frame: frame); configure() }
-    required init?(coder: NSCoder) { super.init(coder: coder); configure() }
-
-    private func configure() {
+    // MARK: init
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         backgroundColor = .systemGray5
-        [avatarImageView, fullNameLabel, statusLabel,
-         statusTextField, actionButton].forEach(addSubview)
-
-        layoutUI()
-        applyViewingLayout()                      // стартовый режим «просмотр»
+        addSubviews()
+        actionButton.setTitle("Set status", for: .normal)
+        activateConstraints()
+        configureAvatar()
         actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
-
-        avatarImageView.image = UIImage(named: "avatar")      // или заглушка
     }
 
-    // MARK: - Layout (констрейнты неизменяемы)
-    private func layoutUI() {
-        // Аватар
-        NSLayoutConstraint.activate([
-            avatarImageView.topAnchor    .constraint(equalTo: topAnchor, constant: 16),
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        backgroundColor = .systemGray5
+        addSubviews()
+        actionButton.setTitle("Set status", for: .normal)
+        activateConstraints()
+        configureAvatar()
+        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+    }
+
+    private func addSubviews() {
+        addSubview(avatarImageView)
+        addSubview(fullNameLabel)
+        addSubview(statusLabel)
+        addSubview(statusTextField)
+        addSubview(actionButton)
+    }
+
+    // MARK: констрейнты — один activate
+    private func activateConstraints() {
+        let constraints: [NSLayoutConstraint] = [
+
+            // Аватар
+            avatarImageView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             avatarImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            avatarImageView.widthAnchor  .constraint(equalToConstant: 110),
-            avatarImageView.heightAnchor .constraint(equalToConstant: 110)
-        ])
+            avatarImageView.widthAnchor.constraint(equalToConstant: 110),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 110),
 
-        // Hipster Cat (всегда на 27 pt)
-        NSLayoutConstraint.activate([
-            fullNameLabel.topAnchor     .constraint(equalTo: topAnchor, constant: 27),
-            fullNameLabel.leadingAnchor .constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
-            fullNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16)
-        ])
+            // Имя
+            fullNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 32),
+            fullNameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
+            fullNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
 
-        // Статус
-        NSLayoutConstraint.activate([
-            statusLabel.topAnchor       .constraint(equalTo: fullNameLabel.bottomAnchor, constant: 8),
-            statusLabel.leadingAnchor   .constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
-            statusLabel.trailingAnchor  .constraint(lessThanOrEqualTo: trailingAnchor, constant: -16)
-        ])
+            // Статус-лейбл
+            statusLabel.topAnchor.constraint(equalTo: fullNameLabel.bottomAnchor, constant: 24),
+            statusLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
+            statusLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
 
-        // Текст-поле (всегда «держит» геометрию)
-        NSLayoutConstraint.activate([
-            statusTextField.topAnchor   .constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
+            // Поле ввода
+            statusTextField.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
             statusTextField.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
             statusTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            statusTextField.heightAnchor.constraint(equalToConstant: 40)
-        ])
+            statusTextField.heightAnchor.constraint(equalToConstant: 40),
 
-        // Кнопка
-        NSLayoutConstraint.activate([
-            actionButton.topAnchor      .constraint(equalTo: statusTextField.bottomAnchor, constant: 16),
-            actionButton.leadingAnchor  .constraint(equalTo: leadingAnchor, constant: 16),
-            actionButton.trailingAnchor .constraint(equalTo: trailingAnchor, constant: -16),
-            actionButton.heightAnchor   .constraint(equalToConstant: 50),
-            actionButton.bottomAnchor   .constraint(equalTo: bottomAnchor, constant: -16)
-        ])
+            // Кнопка
+            actionButton.topAnchor.constraint(equalTo: statusTextField.bottomAnchor, constant: 16),
+            actionButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            actionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            actionButton.heightAnchor.constraint(equalToConstant: 50),
+            actionButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+        ]
+
+        NSLayoutConstraint.activate(constraints)
     }
 
-    // MARK: - Режимы отображения
-    private func applyViewingLayout() {
-        statusLabel.transform       = CGAffineTransform(translationX: 0, y: statusOffset) // опущен
-        statusTextField.alpha       = 0                                                   // невидим
-        actionButton.setTitle("Show status", for: .normal)
-        isEditingStatus             = false
-    }
-
-    private func applyEditingLayout() {
-        statusLabel.transform       = .identity                                           // поднят
-        statusTextField.alpha       = 1
-        actionButton.setTitle("Set status", for: .normal)
-        isEditingStatus             = true
-    }
-
-    // MARK: - Кнопка
+    // MARK: кнопка
     @objc private func buttonTapped() {
-        if isEditingStatus {
-            if let txt = statusTextField.text, !txt.isEmpty { statusLabel.text = txt }
-            statusTextField.text = ""; statusTextField.resignFirstResponder()
-            UIView.animate(withDuration: 0.25) { self.applyViewingLayout(); self.layoutIfNeeded() }
+        guard let text = statusTextField.text, !text.isEmpty else { return }
+        statusLabel.text = text
+        statusTextField.text = ""
+    }
+
+    // MARK: – аватар-заглушка
+    private func configureAvatar() {
+        if let image = UIImage(named: "avatar") {
+            avatarImageView.image = image
         } else {
-            UIView.animate(withDuration: 0.25) { self.applyEditingLayout(); self.layoutIfNeeded() }
-            statusTextField.becomeFirstResponder()
+            let size = CGSize(width: 110, height: 110)
+            let placeholder = UIGraphicsImageRenderer(size: size).image { ctx in
+                let colors = [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor] as CFArray
+                if let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) {
+                    ctx.cgContext.drawLinearGradient(
+                        grad,
+                        start: .zero,
+                        end: CGPoint(x: size.width, y: size.height),
+                        options: []
+                    )
+                }
+            }
+            avatarImageView.image = placeholder
         }
     }
 
-    // MARK: - Круглая аватарка
     override func layoutSubviews() {
         super.layoutSubviews()
         avatarImageView.layer.cornerRadius = avatarImageView.bounds.width / 2
