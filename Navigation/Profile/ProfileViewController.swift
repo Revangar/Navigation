@@ -6,7 +6,14 @@ class ProfileViewController: UIViewController {
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.separatorStyle = .none
+        
+        // штатный разделитель
+        tableView.separatorStyle  = .singleLine
+        tableView.separatorInset  = .zero
+        tableView.separatorColor  = .systemGray4
+        
+        // светло-серый фон
+        tableView.backgroundColor = .systemGray5
         return tableView
     }()
     
@@ -118,6 +125,16 @@ extension ProfileViewController: UITableViewDelegate {
             return 230
         }
         return 0
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        // Ячейка «Photos» — в секции 0
+        if indexPath.section == 0 {
+            let vc = PhotosViewController()
+            navigationController?.pushViewController(vc, animated: true)
+        }
     }
     
 }
