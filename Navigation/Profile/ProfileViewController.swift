@@ -19,6 +19,12 @@ class ProfileViewController: UIViewController {
     
     private let posts = PostsStorage.posts
     
+    // MARK: – Avatar fullscreen helpers
+    private var avatarSnapshot: UIImageView?
+    private var overlayView:  UIView?
+    private var closeButton:  UIButton?
+    private weak var originalAvatar: UIImageView?
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -96,26 +102,11 @@ extension ProfileViewController: UITableViewDelegate {
         return 400
     }
 
-    // Убираем системный разделитель у секции с фото,
-    // чтобы он не «прилипал» к картинкам и не перекрывал наш кастомный.
-    func tableView(_ tableView: UITableView,
-                   willDisplay cell: UITableViewCell,
-                   forRowAt indexPath: IndexPath) {
-        if indexPath.section == 0 {
-            // Прячем разделитель, смещая его за пределы экрана
-            cell.separatorInset = UIEdgeInsets(top: 0,
-                                               left: cell.bounds.width,
-                                               bottom: 0,
-                                               right: 0)
-        } else {
-            // Для постов возвращаем стандартный инсет
-            cell.separatorInset = .zero
-        }
-    }
-    
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section == 0 {
-            return ProfileHeaderView()
+            let header = ProfileHeaderView()
+            header.delegate = self          // назначаем делегата
+            return header
         }
         return nil
     }
@@ -137,4 +128,96 @@ extension ProfileViewController: UITableViewDelegate {
         }
     }
     
+}
+
+// MARK: – Avatar fullscreen
+extension ProfileViewController: ProfileHeaderViewDelegate {
+
+    func avatarTapped(sourceView: UIImageView) {
+        presentAvatarFullscreen(from: sourceView)
+    }
+
+    private func presentAvatarFullscreen(from avatar: UIImageView) {
+
+        // исходный frame (в координатах контроллера)
+        let originFrame = avatar.convert(avatar.bounds, to: view)
+
+        // снимок
+        let snap = UIImageView(image: avatar.image)
+        snap.contentMode = .scaleAspectFill
+        snap.clipsToBounds = true
+        snap.layer.cornerRadius = avatar.layer.cornerRadius
+        snap.frame = originFrame
+        view.addSubview(snap)
+        avatarSnapshot = snap
+
+        // overlay
+        let overlay = UIView(frame: view.bounds)
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        overlay.alpha = 0
+        view.insertSubview(overlay, belowSubview: snap)
+        overlayView = overlay
+
+        // close button
+        let close = UIButton(type: .system)
+        close.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        close.tintColor = .white
+        close.alpha = 0
+        close.addTarget(self, action: #selector(dismissAvatarFullscreen), for: .touchUpInside)
+        view.addSubview(close)
+        closeButton = close
+        close.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            close.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            close.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+        ])
+
+        // скрываем оригинальный аватар (если принадлежит ProfileHeaderView)
+        (avatar.superview?.superview as? ProfileHeaderView)?.setAvatarHidden(true)
+        originalAvatar = avatar
+
+        // целевые параметры
+        let targetSide = view.bounds.width
+        let targetCenter = view.center
+
+        UIView.animate(withDuration: 0.5, animations: {
+            snap.bounds.size = CGSize(width: targetSide, height: targetSide)
+            snap.center = targetCenter
+            snap.layer.cornerRadius = 0                // звёздочка: radius → 0
+            overlay.alpha = 1
+        }) { _ in
+            UIView.animate(withDuration: 0.3) {
+                close.alpha = 1
+            }
+        }
+    }
+
+    @objc private func dismissAvatarFullscreen() {
+        guard
+            let snap = avatarSnapshot,
+            let overlay = overlayView,
+            let close = closeButton,
+            let avatar = originalAvatar
+        else { return }
+
+        close.alpha = 0
+
+        let originFrame = avatar.convert(avatar.bounds, to: view)
+
+        UIView.animate(withDuration: 0.5, animations: {
+            snap.frame = originFrame
+            snap.layer.cornerRadius = avatar.layer.cornerRadius
+            overlay.alpha = 0
+        }) { _ in
+            snap.removeFromSuperview()
+            overlay.removeFromSuperview()
+            close.removeFromSuperview()
+            (avatar.superview?.superview as? ProfileHeaderView)?.setAvatarHidden(false)
+
+            self.avatarSnapshot = nil
+            self.overlayView = nil
+            self.closeButton = nil
+            self.originalAvatar = nil
+        }
+    }
 }

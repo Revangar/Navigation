@@ -1,6 +1,12 @@
 import UIKit
 
+protocol ProfileHeaderViewDelegate: AnyObject {
+    func avatarTapped(sourceView: UIImageView)
+}
+
 final class ProfileHeaderView: UIView {
+
+    weak var delegate: ProfileHeaderViewDelegate?
 
     // MARK: UI-элементы
     private let avatarImageView: UIImageView = {
@@ -10,6 +16,7 @@ final class ProfileHeaderView: UIView {
         imageView.layer.borderWidth = 3
         imageView.layer.borderColor = UIColor.white.cgColor
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isUserInteractionEnabled = true
         return imageView
     }()
 
@@ -60,26 +67,26 @@ final class ProfileHeaderView: UIView {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+    // MARK: – avatar constraints
+    private var avatarTop:      NSLayoutConstraint!
+    private var avatarLeading:  NSLayoutConstraint!
+    private var avatarWidth:    NSLayoutConstraint!
+    private var avatarHeight:   NSLayoutConstraint!
 
+    private var avatarCenterX:  NSLayoutConstraint!
+    private var avatarCenterY:  NSLayoutConstraint!
+    private var avatarFullWidth:NSLayoutConstraint!
+    
     // MARK: init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .systemGray5
-        addSubviews()
-        actionButton.setTitle("Set status", for: .normal)
-        activateConstraints()
-        configureAvatar()
-        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        setup()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        backgroundColor = .systemGray5
-        addSubviews()
-        actionButton.setTitle("Set status", for: .normal)
-        activateConstraints()
-        configureAvatar()
-        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        setup()
     }
 
     private func addSubviews() {
@@ -92,13 +99,18 @@ final class ProfileHeaderView: UIView {
 
     // MARK: констрейнты — один activate
     private func activateConstraints() {
+        // исходные констрейнты аватара
+        avatarTop     = avatarImageView.topAnchor     .constraint(equalTo: topAnchor, constant: 16)
+        avatarLeading = avatarImageView.leadingAnchor .constraint(equalTo: leadingAnchor, constant: 16)
+        avatarWidth   = avatarImageView.widthAnchor   .constraint(equalToConstant: 110)
+        avatarHeight  = avatarImageView.heightAnchor  .constraint(equalToConstant: 110)
+
         let constraints: [NSLayoutConstraint] = [
 
-            // Аватар
-            avatarImageView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            avatarImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            avatarImageView.widthAnchor.constraint(equalToConstant: 110),
-            avatarImageView.heightAnchor.constraint(equalToConstant: 110),
+            avatarTop!,
+            avatarLeading!,
+            avatarWidth!,
+            avatarHeight!,
 
             // Имя
             fullNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 32),
@@ -121,7 +133,7 @@ final class ProfileHeaderView: UIView {
             actionButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             actionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             actionButton.heightAnchor.constraint(equalToConstant: 50),
-            actionButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+            actionButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
         ]
 
         NSLayoutConstraint.activate(constraints)
@@ -158,5 +170,46 @@ final class ProfileHeaderView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         avatarImageView.layer.cornerRadius = avatarImageView.bounds.width / 2
+    }
+
+    // MARK: – common setup
+    private func setup() {
+        backgroundColor = .systemGray5
+        addSubviews()
+        
+        actionButton.setTitle("Set status", for: .normal)
+        activateConstraints()
+        
+        // alt‑constraints для полноэкранного аватара (изначально неактивны)
+        avatarCenterX   = avatarImageView.centerXAnchor.constraint(equalTo: centerXAnchor)
+        avatarCenterY   = avatarImageView.centerYAnchor.constraint(equalTo: centerYAnchor)
+        avatarFullWidth = avatarImageView.widthAnchor.constraint(equalTo: widthAnchor)
+
+        avatarCenterX.isActive   = false
+        avatarCenterY.isActive   = false
+        avatarFullWidth.isActive = false
+
+        // сохраняем пропорции 1:1 (работает в обоих состояниях)
+        let ratio = avatarImageView.heightAnchor.constraint(equalTo: avatarImageView.widthAnchor)
+        ratio.isActive = true
+        
+        configureAvatar()
+        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        let tap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        avatarImageView.addGestureRecognizer(tap)
+    }
+    
+    @objc private func avatarTapped() {
+        delegate?.avatarTapped(sourceView: avatarImageView)
+    }
+
+    // Возвращает кадр аватара в координатах указанного view
+    func avatarFrame(in targetView: UIView) -> CGRect {
+        return avatarImageView.convert(avatarImageView.bounds, to: targetView)
+    }
+
+    // Скрыть / показать оригинальный аватар
+    func setAvatarHidden(_ hidden: Bool) {
+        avatarImageView.alpha = hidden ? 0 : 1
     }
 }
