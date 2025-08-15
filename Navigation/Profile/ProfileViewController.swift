@@ -12,8 +12,12 @@ class ProfileViewController: UIViewController {
         tableView.separatorInset  = .zero
         tableView.separatorColor  = .systemGray4
         
-        // светло-серый фон
+        // светло-серый или розовый фон
+        #if DEBUG
+        tableView.backgroundColor = .systemPink
+        #else
         tableView.backgroundColor = .systemGray5
+        #endif
         return tableView
     }()
     
@@ -221,3 +225,4 @@ extension ProfileViewController: ProfileHeaderViewDelegate {
         }
     }
 }
+

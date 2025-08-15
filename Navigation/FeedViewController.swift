@@ -1,4 +1,5 @@
 import UIKit
+import StorageService
 
 class FeedViewController: UIViewController {
     private let stackView: UIStackView = {
