@@ -6,8 +6,38 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B0B1D64D3003ED9500ABB250 /* StorageService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0FD4E4A2DD67F48001C2554 /* StorageService.framework */; };
+		B0B1D64E3003ED9500ABB250 /* StorageService.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B0FD4E4A2DD67F48001C2554 /* StorageService.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B0FD4E592DD67F48001C2554 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B0FD4E0F2DD67F46001C2554 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B0FD4E502DD67F48001C2554;
+			remoteInfo = StorageService;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B0B1D64F3003ED9500ABB250 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B0B1D64E3003ED9500ABB250 /* StorageService.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		B0FD4E172DD67F46001C2554 /* Navigation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Navigation.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0FD4E4A2DD67F48001C2554 /* StorageService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = StorageService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -17,6 +47,13 @@
 				Info.plist,
 			);
 			target = B0FD4E162DD67F46001C2554 /* Navigation */;
+		};
+		B0FD4E4B2DD67F48001C2554 /* Exceptions for "StorageService" folder in "StorageService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B0FD4E502DD67F48001C2554 /* StorageService */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -29,10 +66,26 @@
 			path = Navigation;
 			sourceTree = "<group>";
 		};
+		B0FD4E4C2DD67F48001C2554 /* StorageService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B0FD4E4B2DD67F48001C2554 /* Exceptions for "StorageService" folder in "StorageService" target */,
+			);
+			path = StorageService;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B0FD4E142DD67F46001C2554 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0B1D64D3003ED9500ABB250 /* StorageService.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0FD4E4D2DD67F48001C2554 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -45,6 +98,7 @@
 		B0FD4E0E2DD67F46001C2554 = {
 			isa = PBXGroup;
 			children = (
+				B0FD4E4C2DD67F48001C2554 /* StorageService */,
 				B0FD4E192DD67F46001C2554 /* Navigation */,
 				B0FD4E182DD67F46001C2554 /* Products */,
 			);
@@ -53,6 +107,7 @@
 		B0FD4E182DD67F46001C2554 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				B0FD4E4A2DD67F48001C2554 /* StorageService.framework */,
 				B0FD4E172DD67F46001C2554 /* Navigation.app */,
 			);
 			name = Products;
@@ -68,10 +123,12 @@
 				B0FD4E132DD67F46001C2554 /* Sources */,
 				B0FD4E142DD67F46001C2554 /* Frameworks */,
 				B0FD4E152DD67F46001C2554 /* Resources */,
+				B0B1D64F3003ED9500ABB250 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B0FD4E582DD67F48001C2554 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				B0FD4E192DD67F46001C2554 /* Navigation */,
@@ -82,6 +139,28 @@
 			productName = Navigation;
 			productReference = B0FD4E172DD67F46001C2554 /* Navigation.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B0FD4E502DD67F48001C2554 /* StorageService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0FD4E562DD67F48001C2554 /* Build configuration list for PBXNativeTarget "StorageService" */;
+			buildPhases = (
+				B0FD4E4F2DD67F48001C2554 /* Sources */,
+				B0FD4E4D2DD67F48001C2554 /* Frameworks */,
+				B0FD4E4E2DD67F48001C2554 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B0FD4E4C2DD67F48001C2554 /* StorageService */,
+			);
+			name = StorageService;
+			packageProductDependencies = (
+			);
+			productName = StorageService;
+			productReference = B0FD4E4A2DD67F48001C2554 /* StorageService.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
@@ -94,6 +173,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					B0FD4E162DD67F46001C2554 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					B0FD4E502DD67F48001C2554 = {
 						CreatedOnToolsVersion = 16.3;
 					};
 				};
@@ -113,12 +195,20 @@
 			projectRoot = "";
 			targets = (
 				B0FD4E162DD67F46001C2554 /* Navigation */,
+				B0FD4E502DD67F48001C2554 /* StorageService */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B0FD4E152DD67F46001C2554 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0FD4E4E2DD67F48001C2554 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -135,7 +225,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B0FD4E4F2DD67F48001C2554 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B0FD4E582DD67F48001C2554 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B0FD4E502DD67F48001C2554 /* StorageService */;
+			targetProxy = B0FD4E592DD67F48001C2554 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B0FD4E2B2DD67F47001C2554 /* Debug */ = {
@@ -156,7 +261,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ITrundaev.Navigation;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.ilyatrundaev.navigation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -186,7 +291,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ITrundaev.Navigation;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.ilyatrundaev.navigation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -321,6 +426,58 @@
 			};
 			name = Release;
 		};
+		B0FD4E512DD67F48001C2554 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E2RV4F2L9T;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.ilyatrundaev.navigation.storageservice;
+				PRODUCT_NAME = StorageService;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		B0FD4E522DD67F48001C2554 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E2RV4F2L9T;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.ilyatrundaev.navigation.storageservice;
+				PRODUCT_NAME = StorageService;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -338,6 +495,15 @@
 			buildConfigurations = (
 				B0FD4E2B2DD67F47001C2554 /* Debug */,
 				B0FD4E2C2DD67F47001C2554 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B0FD4E562DD67F48001C2554 /* Build configuration list for PBXNativeTarget "StorageService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0FD4E512DD67F48001C2554 /* Debug */,
+				B0FD4E522DD67F48001C2554 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

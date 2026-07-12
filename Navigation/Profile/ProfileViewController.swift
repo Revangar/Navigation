@@ -28,7 +28,11 @@ class ProfileViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+#if DEBUG
         view.backgroundColor = .systemBackground
+#else
+        view.backgroundColor = UIColor(red: 0.09, green: 0.14, blue: 0.28, alpha: 1.0)
+#endif
         title = "Profile"
         setupTableView()
         setupConstraints()
