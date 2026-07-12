@@ -1,4 +1,5 @@
 import UIKit
+import StorageService
 
 class PostTableViewCell: UITableViewCell {
     
@@ -153,4 +154,3 @@ class PostTableViewCell: UITableViewCell {
         postImageView.image = nil
     }
 }
-
