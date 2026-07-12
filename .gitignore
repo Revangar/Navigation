@@ -11,7 +11,7 @@
 !default.perspectivev3
 xcuserdata/
 *.xcuserstate
-profile
+/profile
 *.moved-aside
 DerivedData
 .idea/

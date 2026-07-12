@@ -1,7 +1,11 @@
 import UIKit
 import StorageService
+import iOSIntPackage
 
-class PostTableViewCell: UITableViewCell {
+final class PostTableViewCell: UITableViewCell {
+
+    private let imageProcessor = ImageProcessor()
+    private let imageFilter: ColorFilter = .chrome
     
     // MARK: - UI Elements
     private let authorLabel: UILabel = {
@@ -108,12 +112,13 @@ class PostTableViewCell: UITableViewCell {
         likesLabel.text = "Likes: \(post.likes)"
         viewsLabel.text = "Views: \(post.views)"
         
-        // Загружаем изображение
-        if let image = UIImage(named: post.image) {
-            postImageView.image = image
-        } else {
-            // Если изображение не найдено, создаем заглушку
-            postImageView.image = createPlaceholderImage()
+        let sourceImage = UIImage(named: post.image) ?? createPlaceholderImage()
+
+        imageProcessor.processImage(
+            sourceImage: sourceImage,
+            filter: imageFilter
+        ) { [weak self] processedImage in
+            self?.postImageView.image = processedImage ?? sourceImage
         }
     }
     
