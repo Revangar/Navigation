@@ -1,4 +1,5 @@
 import UIKit
+import SnapKit
 
 protocol ProfileHeaderViewDelegate: AnyObject {
     func avatarTapped(sourceView: UIImageView)
@@ -8,14 +9,14 @@ final class ProfileHeaderView: UIView {
 
     weak var delegate: ProfileHeaderViewDelegate?
 
-    // MARK: UI-элементы
+    // MARK: - UI Elements
+
     private let avatarImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 3
         imageView.layer.borderColor = UIColor.white.cgColor
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true
         return imageView
     }()
@@ -25,7 +26,8 @@ final class ProfileHeaderView: UIView {
         label.text = "Hipster Cat"
         label.font = .systemFont(ofSize: 18, weight: .bold)
         label.textColor = .black
-        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.lineBreakMode = .byTruncatingTail
         return label
     }()
 
@@ -34,13 +36,14 @@ final class ProfileHeaderView: UIView {
         label.text = "Waiting for something..."
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = .gray
-        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.lineBreakMode = .byTruncatingTail
         return label
     }()
 
     private let statusTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Set your status.."
+        textField.placeholder = "Set your status..."
         textField.font = .systemFont(ofSize: 15, weight: .regular)
         textField.textColor = .black
         textField.backgroundColor = .white
@@ -49,13 +52,12 @@ final class ProfileHeaderView: UIView {
         textField.layer.borderColor = UIColor.black.cgColor
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: 40))
         textField.leftViewMode = .always
-        textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
 
     private let actionButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Show status", for: .normal)
+        button.setTitle("Set status", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = .systemBlue
@@ -64,21 +66,11 @@ final class ProfileHeaderView: UIView {
         button.layer.shadowOffset = CGSize(width: 4, height: 4)
         button.layer.shadowRadius = 4
         button.layer.shadowOpacity = 0.7
-        button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
-    // MARK: – avatar constraints
-    private var avatarTop:      NSLayoutConstraint!
-    private var avatarLeading:  NSLayoutConstraint!
-    private var avatarWidth:    NSLayoutConstraint!
-    private var avatarHeight:   NSLayoutConstraint!
 
-    private var avatarCenterX:  NSLayoutConstraint!
-    private var avatarCenterY:  NSLayoutConstraint!
-    private var avatarFullWidth:NSLayoutConstraint!
-    
-    // MARK: init
+    // MARK: - Initialization
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -89,6 +81,17 @@ final class ProfileHeaderView: UIView {
         setup()
     }
 
+    // MARK: - Setup
+
+    private func setup() {
+        backgroundColor = .systemGray5
+
+        addSubviews()
+        setupConstraints()
+        configureAvatar()
+        setupActions()
+    }
+
     private func addSubviews() {
         addSubview(avatarImageView)
         addSubview(fullNameLabel)
@@ -97,73 +100,90 @@ final class ProfileHeaderView: UIView {
         addSubview(actionButton)
     }
 
-    // MARK: констрейнты — один activate
-    private func activateConstraints() {
-        // исходные констрейнты аватара
-        avatarTop     = avatarImageView.topAnchor     .constraint(equalTo: topAnchor, constant: 16)
-        avatarLeading = avatarImageView.leadingAnchor .constraint(equalTo: leadingAnchor, constant: 16)
-        avatarWidth   = avatarImageView.widthAnchor   .constraint(equalToConstant: 110)
-        avatarHeight  = avatarImageView.heightAnchor  .constraint(equalToConstant: 110)
+    private func setupConstraints() {
+        avatarImageView.snp.makeConstraints { make in
+            make.top.leading.equalToSuperview().inset(16)
+            make.size.equalTo(110)
+        }
 
-        let constraints: [NSLayoutConstraint] = [
+        fullNameLabel.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(32)
+            make.leading.equalTo(avatarImageView.snp.trailing).offset(16)
+            make.trailing.lessThanOrEqualToSuperview().inset(16)
+        }
 
-            avatarTop!,
-            avatarLeading!,
-            avatarWidth!,
-            avatarHeight!,
+        statusLabel.snp.makeConstraints { make in
+            make.top.equalTo(fullNameLabel.snp.bottom).offset(24)
+            make.leading.equalTo(avatarImageView.snp.trailing).offset(16)
+            make.trailing.lessThanOrEqualToSuperview().inset(16)
+        }
 
-            // Имя
-            fullNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 32),
-            fullNameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
-            fullNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+        statusTextField.snp.makeConstraints { make in
+            make.top.equalTo(statusLabel.snp.bottom).offset(8)
+            make.leading.equalTo(avatarImageView.snp.trailing).offset(16)
+            make.trailing.equalToSuperview().inset(16)
+            make.height.equalTo(40)
+        }
 
-            // Статус-лейбл
-            statusLabel.topAnchor.constraint(equalTo: fullNameLabel.bottomAnchor, constant: 24),
-            statusLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
-            statusLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
-
-            // Поле ввода
-            statusTextField.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
-            statusTextField.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
-            statusTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            statusTextField.heightAnchor.constraint(equalToConstant: 40),
-
-            // Кнопка
-            actionButton.topAnchor.constraint(equalTo: statusTextField.bottomAnchor, constant: 16),
-            actionButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            actionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            actionButton.heightAnchor.constraint(equalToConstant: 50),
-            actionButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
-        ]
-
-        NSLayoutConstraint.activate(constraints)
+        actionButton.snp.makeConstraints { make in
+            make.leading.trailing.bottom.equalToSuperview().inset(16)
+            make.height.equalTo(50)
+            make.top.greaterThanOrEqualTo(statusTextField.snp.bottom).offset(16)
+        }
     }
 
-    // MARK: кнопка
+    private func setupActions() {
+        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        avatarImageView.addGestureRecognizer(tapGesture)
+    }
+
+    // MARK: - Actions
+
     @objc private func buttonTapped() {
-        guard let text = statusTextField.text, !text.isEmpty else { return }
+        guard
+            let text = statusTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !text.isEmpty
+        else {
+            return
+        }
+
         statusLabel.text = text
-        statusTextField.text = ""
+        statusTextField.text = nil
+        statusTextField.resignFirstResponder()
     }
 
-    // MARK: – аватар-заглушка
+    @objc private func avatarTapped() {
+        delegate?.avatarTapped(sourceView: avatarImageView)
+    }
+
+    // MARK: - Avatar
+
     private func configureAvatar() {
         if let image = UIImage(named: "avatar") {
             avatarImageView.image = image
-        } else {
-            let size = CGSize(width: 110, height: 110)
-            let placeholder = UIGraphicsImageRenderer(size: size).image { ctx in
-                let colors = [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor] as CFArray
-                if let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) {
-                    ctx.cgContext.drawLinearGradient(
-                        grad,
-                        start: .zero,
-                        end: CGPoint(x: size.width, y: size.height),
-                        options: []
-                    )
-                }
+            return
+        }
+
+        let size = CGSize(width: 110, height: 110)
+        avatarImageView.image = UIGraphicsImageRenderer(size: size).image { context in
+            let colors = [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor] as CFArray
+
+            guard let gradient = CGGradient(
+                colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                colors: colors,
+                locations: [0, 1]
+            ) else {
+                return
             }
-            avatarImageView.image = placeholder
+
+            context.cgContext.drawLinearGradient(
+                gradient,
+                start: .zero,
+                end: CGPoint(x: size.width, y: size.height),
+                options: []
+            )
         }
     }
 
@@ -172,43 +192,12 @@ final class ProfileHeaderView: UIView {
         avatarImageView.layer.cornerRadius = avatarImageView.bounds.width / 2
     }
 
-    // MARK: – common setup
-    private func setup() {
-        backgroundColor = .systemGray5
-        addSubviews()
-        
-        actionButton.setTitle("Set status", for: .normal)
-        activateConstraints()
-        
-        // alt‑constraints для полноэкранного аватара (изначально неактивны)
-        avatarCenterX   = avatarImageView.centerXAnchor.constraint(equalTo: centerXAnchor)
-        avatarCenterY   = avatarImageView.centerYAnchor.constraint(equalTo: centerYAnchor)
-        avatarFullWidth = avatarImageView.widthAnchor.constraint(equalTo: widthAnchor)
+    // MARK: - Public Methods
 
-        avatarCenterX.isActive   = false
-        avatarCenterY.isActive   = false
-        avatarFullWidth.isActive = false
-
-        // сохраняем пропорции 1:1 (работает в обоих состояниях)
-        let ratio = avatarImageView.heightAnchor.constraint(equalTo: avatarImageView.widthAnchor)
-        ratio.isActive = true
-        
-        configureAvatar()
-        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
-        avatarImageView.addGestureRecognizer(tap)
-    }
-    
-    @objc private func avatarTapped() {
-        delegate?.avatarTapped(sourceView: avatarImageView)
-    }
-
-    // Возвращает кадр аватара в координатах указанного view
     func avatarFrame(in targetView: UIView) -> CGRect {
-        return avatarImageView.convert(avatarImageView.bounds, to: targetView)
+        avatarImageView.convert(avatarImageView.bounds, to: targetView)
     }
 
-    // Скрыть / показать оригинальный аватар
     func setAvatarHidden(_ hidden: Bool) {
         avatarImageView.alpha = hidden ? 0 : 1
     }
