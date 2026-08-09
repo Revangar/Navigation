@@ -3,6 +3,7 @@ import UIKit
 class ProfileViewController: UIViewController {
     
     // MARK: - Properties
+    private let user: User
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -25,6 +26,16 @@ class ProfileViewController: UIViewController {
     private var closeButton:  UIButton?
     private weak var originalAvatar: UIImageView?
     
+    // MARK: - Initialization
+    init(user: User) {
+        self.user = user
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -109,7 +120,8 @@ extension ProfileViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section == 0 {
             let header = ProfileHeaderView()
-            header.delegate = self          // назначаем делегата
+            header.delegate = self
+            header.configure(with: user)
             return header
         }
         return nil
