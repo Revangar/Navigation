@@ -1,21 +1,20 @@
 import UIKit
 
 final class TestUserService: UserService {
-    private let testUser: User
+    var user: User
 
-    init() {
+    init(user: User? = nil) {
+        if let user {
+            self.user = user
+            return
+        }
+
         let avatar = UIImage(named: "photo1") ?? UIImage(named: "avatar") ?? UIImage()
-
-        self.testUser = User(
+        self.user = User(
             login: "test",
             fullName: "Test User",
             avatar: avatar,
             status: "Debug profile"
         )
-    }
-
-    func user(for login: String) -> User? {
-        let normalizedLogin = login.trimmingCharacters(in: .whitespacesAndNewlines)
-        return normalizedLogin == testUser.login ? testUser : nil
     }
 }
