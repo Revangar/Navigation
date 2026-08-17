@@ -203,6 +203,12 @@ final class ProfileHeaderView: UIView {
         delegate?.avatarTapped(sourceView: avatarImageView)
     }
 
+    func configure(with user: User) {
+        avatarImageView.image = user.avatar
+        fullNameLabel.text = user.fullName
+        statusLabel.text = user.status
+    }
+
     // Возвращает кадр аватара в координатах указанного view
     func avatarFrame(in targetView: UIView) -> CGRect {
         return avatarImageView.convert(avatarImageView.bounds, to: targetView)

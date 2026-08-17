@@ -14,7 +14,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let feedNav = UINavigationController(rootViewController: FeedViewController())
         feedNav.tabBarItem = UITabBarItem(title: "Feed", image: UIImage(systemName: "list.bullet"), tag: 0)
 
-        let profileNav = UINavigationController(rootViewController: LogInViewController())
+        let userService: UserService
+#if DEBUG
+        userService = TestUserService()
+#else
+        let avatar = UIImage(named: "avatar") ?? UIImage()
+        let currentUser = User(
+            login: "hipster",
+            fullName: "Hipster Cat",
+            avatar: avatar,
+            status: "Waiting for something..."
+        )
+        userService = CurrentUserService(user: currentUser)
+#endif
+
+        let logInViewController = LogInViewController(userService: userService)
+        let profileNav = UINavigationController(rootViewController: logInViewController)
         profileNav.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person.crop.circle"), tag: 1)
 
         tabBarController.viewControllers = [feedNav, profileNav]
@@ -48,7 +63,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // Called as the scene transitions from the foreground to the background.
+        // Called when the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
