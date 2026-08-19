@@ -1,14 +1,7 @@
-import Foundation
-
 final class CurrentUserService: UserService {
-    private let currentUser: User
+    var user: User
 
     init(user: User) {
-        self.currentUser = user
-    }
-
-    func user(for login: String) -> User? {
-        let normalizedLogin = login.trimmingCharacters(in: .whitespacesAndNewlines)
-        return normalizedLogin == currentUser.login ? currentUser : nil
+        self.user = user
     }
 }

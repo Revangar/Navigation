@@ -1,3 +1,13 @@
+import Foundation
+
 protocol UserService {
-    func user(for login: String) -> User?
+    var user: User { get set }
+    func getUser(login: String) -> User?
+}
+
+extension UserService {
+    func getUser(login: String) -> User? {
+        let normalizedLogin = login.trimmingCharacters(in: .whitespacesAndNewlines)
+        return normalizedLogin == user.login ? user : nil
+    }
 }
