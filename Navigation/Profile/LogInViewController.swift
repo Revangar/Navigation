@@ -52,6 +52,11 @@ class LogInViewController: UIViewController {
     private let emailTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Login"
+#if DEBUG
+        textField.text = "test"
+#else
+        textField.text = "hipster"
+#endif
         textField.borderStyle = .none
         textField.backgroundColor = .clear
         textField.layer.cornerRadius = 0
@@ -72,6 +77,7 @@ class LogInViewController: UIViewController {
     private let passwordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Password"
+        textField.text = "12345"
         textField.borderStyle = .none
         textField.backgroundColor = .clear
         textField.layer.cornerRadius = 0
