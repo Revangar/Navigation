@@ -87,10 +87,13 @@ final class PhotosViewController: UIViewController {
 // MARK: - ImageLibrarySubscriber
 extension PhotosViewController: ImageLibrarySubscriber {
     func receive(images: [UIImage]) {
-        DispatchQueue.main.async { [weak self] in
-            self?.photos = images
-            self?.collectionView.reloadData()
-        }
+        photos = images
+        collectionView.reloadData()
+
+        guard !images.isEmpty else { return }
+
+        let lastItem = IndexPath(item: images.count - 1, section: 0)
+        collectionView.scrollToItem(at: lastItem, at: .bottom, animated: true)
     }
 }
 
