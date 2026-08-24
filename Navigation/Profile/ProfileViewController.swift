@@ -1,31 +1,28 @@
 import UIKit
 
 class ProfileViewController: UIViewController {
-    
+
     // MARK: - Properties
     private let user: User
+
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        // штатный разделитель
-        tableView.separatorStyle  = .singleLine
-        tableView.separatorInset  = .zero
-        tableView.separatorColor  = .systemGray4
-        
-        // светло-серый фон
+        tableView.separatorStyle = .singleLine
+        tableView.separatorInset = .zero
+        tableView.separatorColor = .systemGray4
         tableView.backgroundColor = .systemGray5
         return tableView
     }()
-    
+
     private let posts = PostsStorage.posts
-    
-    // MARK: – Avatar fullscreen helpers
+
+    // MARK: - Avatar fullscreen helpers
     private var avatarSnapshot: UIImageView?
-    private var overlayView:  UIView?
-    private var closeButton:  UIButton?
+    private var overlayView: UIView?
+    private var closeButton: CustomButton?
     private weak var originalAvatar: UIImageView?
-    
+
     // MARK: - Initialization
     init(user: User) {
         self.user = user
@@ -48,20 +45,19 @@ class ProfileViewController: UIViewController {
         setupTableView()
         setupConstraints()
     }
-    
-    // MARK: - Setup Methods
+
+    // MARK: - Setup
     private func setupTableView() {
         view.addSubview(tableView)
-        
         tableView.delegate = self
         tableView.dataSource = self
-        
-        // Регистрируем ячейку
         tableView.register(PostTableViewCell.self, forCellReuseIdentifier: "PostTableViewCell")
-        tableView.register(PhotosTableViewCell.self,
-                           forCellReuseIdentifier: PhotosTableViewCell.identifier)
+        tableView.register(
+            PhotosTableViewCell.self,
+            forCellReuseIdentifier: PhotosTableViewCell.identifier
+        )
     }
-     
+
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -75,31 +71,31 @@ class ProfileViewController: UIViewController {
 // MARK: - UITableViewDataSource
 extension ProfileViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 2   // 0 – Photos, 1 – Posts
+        2
     }
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return section == 0 ? 1 : posts.count
+        section == 0 ? 1 : posts.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCell(
                 withIdentifier: PhotosTableViewCell.identifier,
-                for: indexPath) as! PhotosTableViewCell
-            
+                for: indexPath
+            ) as! PhotosTableViewCell
+
             let firstFour = (1...4).compactMap { UIImage(named: "photo\($0)") }
             cell.configure(with: firstFour)
             return cell
-        } else {
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: "PostTableViewCell",
-                for: indexPath) as! PostTableViewCell
-            
-            let post = posts[indexPath.row]
-            cell.configure(with: post)
-            return cell
         }
+
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: "PostTableViewCell",
+            for: indexPath
+        ) as! PostTableViewCell
+        cell.configure(with: posts[indexPath.row])
+        return cell
     }
 }
 
@@ -107,99 +103,87 @@ extension ProfileViewController: UITableViewDataSource {
 extension ProfileViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if indexPath.section == 0 {
-            return 28 + 12 + tableView.bounds.width / 4 + 12   // label + offsets + stack
-        } else {
-            return UITableView.automaticDimension
+            return 28 + 12 + tableView.bounds.width / 4 + 12
         }
+        return UITableView.automaticDimension
     }
-    
+
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 400
+        400
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if section == 0 {
-            let header = ProfileHeaderView()
-            header.delegate = self
-            header.configure(with: user)
-            return header
-        }
-        return nil
+        guard section == 0 else { return nil }
+
+        let header = ProfileHeaderView()
+        header.delegate = self
+        header.configure(with: user)
+        return header
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if section == 0 {
-            return 230
-        }
-        return 0
+        section == 0 ? 230 : 0
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        // Ячейка «Photos» — в секции 0
+
         if indexPath.section == 0 {
-            let vc = PhotosViewController()
-            navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(PhotosViewController(), animated: true)
         }
     }
-    
 }
 
-// MARK: – Avatar fullscreen
+// MARK: - Avatar fullscreen
 extension ProfileViewController: ProfileHeaderViewDelegate {
-
     func avatarTapped(sourceView: UIImageView) {
         presentAvatarFullscreen(from: sourceView)
     }
 
     private func presentAvatarFullscreen(from avatar: UIImageView) {
-
-        // исходный frame (в координатах контроллера)
         let originFrame = avatar.convert(avatar.bounds, to: view)
 
-        // снимок
-        let snap = UIImageView(image: avatar.image)
-        snap.contentMode = .scaleAspectFill
-        snap.clipsToBounds = true
-        snap.layer.cornerRadius = avatar.layer.cornerRadius
-        snap.frame = originFrame
-        view.addSubview(snap)
-        avatarSnapshot = snap
+        let snapshot = UIImageView(image: avatar.image)
+        snapshot.contentMode = .scaleAspectFill
+        snapshot.clipsToBounds = true
+        snapshot.layer.cornerRadius = avatar.layer.cornerRadius
+        snapshot.frame = originFrame
+        view.addSubview(snapshot)
+        avatarSnapshot = snapshot
 
-        // overlay
         let overlay = UIView(frame: view.bounds)
         overlay.backgroundColor = UIColor.black.withAlphaComponent(0.6)
         overlay.alpha = 0
-        view.insertSubview(overlay, belowSubview: snap)
+        view.insertSubview(overlay, belowSubview: snapshot)
         overlayView = overlay
 
-        // close button
-        let close = UIButton(type: .system)
-        close.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-        close.tintColor = .white
+        let close = CustomButton(
+            backgroundColor: .clear,
+            cornerRadius: 0,
+            image: UIImage(systemName: "xmark.circle.fill"),
+            tintColor: .white
+        ) { [weak self] in
+            self?.dismissAvatarFullscreen()
+        }
         close.alpha = 0
-        close.addTarget(self, action: #selector(dismissAvatarFullscreen), for: .touchUpInside)
         view.addSubview(close)
         closeButton = close
-        close.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
             close.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             close.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
 
-        // скрываем оригинальный аватар (если принадлежит ProfileHeaderView)
         (avatar.superview?.superview as? ProfileHeaderView)?.setAvatarHidden(true)
         originalAvatar = avatar
 
-        // целевые параметры
         let targetSide = view.bounds.width
         let targetCenter = view.center
 
         UIView.animate(withDuration: 0.5, animations: {
-            snap.bounds.size = CGSize(width: targetSide, height: targetSide)
-            snap.center = targetCenter
-            snap.layer.cornerRadius = 0                // звёздочка: radius → 0
+            snapshot.bounds.size = CGSize(width: targetSide, height: targetSide)
+            snapshot.center = targetCenter
+            snapshot.layer.cornerRadius = 0
             overlay.alpha = 1
         }) { _ in
             UIView.animate(withDuration: 0.3) {
@@ -208,24 +192,25 @@ extension ProfileViewController: ProfileHeaderViewDelegate {
         }
     }
 
-    @objc private func dismissAvatarFullscreen() {
+    private func dismissAvatarFullscreen() {
         guard
-            let snap = avatarSnapshot,
+            let snapshot = avatarSnapshot,
             let overlay = overlayView,
             let close = closeButton,
             let avatar = originalAvatar
-        else { return }
+        else {
+            return
+        }
 
         close.alpha = 0
-
         let originFrame = avatar.convert(avatar.bounds, to: view)
 
         UIView.animate(withDuration: 0.5, animations: {
-            snap.frame = originFrame
-            snap.layer.cornerRadius = avatar.layer.cornerRadius
+            snapshot.frame = originFrame
+            snapshot.layer.cornerRadius = avatar.layer.cornerRadius
             overlay.alpha = 0
         }) { _ in
-            snap.removeFromSuperview()
+            snapshot.removeFromSuperview()
             overlay.removeFromSuperview()
             close.removeFromSuperview()
             (avatar.superview?.superview as? ProfileHeaderView)?.setAvatarHidden(false)

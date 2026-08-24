@@ -95,23 +95,17 @@ class LogInViewController: UIViewController {
         return textField
     }()
 
-    private let logInButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Log In", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
-        button.layer.cornerRadius = 10
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        if let bluePixelImage = UIImage(named: "blue_pixel") {
-            button.setBackgroundImage(bluePixelImage, for: .normal)
-        }
-        button.alpha = 1.0
-        button.setTitleColor(.white, for: .selected)
-        button.setTitleColor(.white, for: .highlighted)
-        button.setTitleColor(.white, for: .disabled)
-        return button
-    }()
+    private lazy var logInButton = CustomButton(
+        title: "Log In",
+        titleColor: .white,
+        backgroundColor: .systemBlue,
+        cornerRadius: 10,
+        font: .systemFont(ofSize: 16),
+        backgroundImage: UIImage(named: "blue_pixel"),
+        clipsToBounds: true
+    ) { [weak self] in
+        self?.logInButtonTapped()
+    }
 
     // MARK: - Initialization
     init(userService: UserService) {
@@ -129,7 +123,7 @@ class LogInViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardObservers()
-        setupActions()
+        setupGestures()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -195,9 +189,7 @@ class LogInViewController: UIViewController {
         ])
     }
 
-    private func setupActions() {
-        logInButton.addTarget(self, action: #selector(logInButtonTapped), for: .touchUpInside)
-
+    private func setupGestures() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
@@ -219,7 +211,7 @@ class LogInViewController: UIViewController {
     }
 
     // MARK: - Actions
-    @objc private func logInButtonTapped() {
+    private func logInButtonTapped() {
         let login = emailTextField.text ?? ""
         let password = passwordTextField.text ?? ""
 
