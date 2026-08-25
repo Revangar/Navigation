@@ -1,9 +1,14 @@
 import UIKit
 import StorageService
 
-class PostViewController: UIViewController {
+protocol PostViewControllerCoordinator: AnyObject {
+    func showInfo()
+}
+
+final class PostViewController: UIViewController {
 
     let post: Post
+    weak var coordinator: PostViewControllerCoordinator?
 
     init(post: Post) {
         self.post = post
@@ -19,14 +24,15 @@ class PostViewController: UIViewController {
         title = post.author
         view.backgroundColor = .systemYellow
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Info", style: .plain, target: self, action: #selector(showInfo))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Info",
+            style: .plain,
+            target: self,
+            action: #selector(showInfo)
+        )
     }
 
-    @objc func showInfo() {
-        let infoVC = InfoViewController()
-        let navVC = UINavigationController(rootViewController: infoVC)
-        navVC.modalPresentationStyle = .fullScreen
-        present(navVC, animated: true)
+    @objc private func showInfo() {
+        coordinator?.showInfo()
     }
 }
- 

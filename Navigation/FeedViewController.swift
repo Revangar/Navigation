@@ -1,10 +1,15 @@
 import UIKit
 import StorageService
 
+protocol FeedViewControllerCoordinator: AnyObject {
+    func showPost(_ post: Post)
+}
+
 final class FeedViewController: UIViewController {
 
-    // MARK: - ViewModel
+    // MARK: - Dependencies
     private let viewModel: FeedViewModel
+    weak var coordinator: FeedViewControllerCoordinator?
 
     // MARK: - UI
     private let stackView: UIStackView = {
@@ -132,11 +137,9 @@ final class FeedViewController: UIViewController {
         }
     }
 
-    // MARK: - Navigation
+    // MARK: - Navigation intent
     private func openPost(at index: Int) {
         guard let post = viewModel.post(at: index) else { return }
-
-        let viewController = PostViewController(post: post)
-        navigationController?.pushViewController(viewController, animated: true)
+        coordinator?.showPost(post)
     }
 }
