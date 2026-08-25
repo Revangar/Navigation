@@ -1,29 +1,37 @@
 import Foundation
-
-extension Notification.Name {
-    static let feedModelDidCheckWord = Notification.Name("FeedModel.didCheckWord")
-}
+import StorageService
 
 final class FeedModel {
 
-    enum UserInfoKey {
-        static let isCorrect = "isCorrect"
-    }
-
     private let secretWord: String
+    private let posts: [Post]
 
     init(secretWord: String = "swift") {
         self.secretWord = secretWord
+        self.posts = [
+            Post(
+                author: "Первый автор",
+                description: "Описание первого поста",
+                image: "post1",
+                likes: 100,
+                views: 150
+            ),
+            Post(
+                author: "Второй автор",
+                description: "Описание второго поста",
+                image: "post2",
+                likes: 200,
+                views: 250
+            )
+        ]
     }
 
-    func check(word: String) {
-        let normalizedWord = word.trimmingCharacters(in: .whitespacesAndNewlines)
-        let isCorrect = normalizedWord.caseInsensitiveCompare(secretWord) == .orderedSame
+    func check(word: String) -> Bool {
+        word.caseInsensitiveCompare(secretWord) == .orderedSame
+    }
 
-        NotificationCenter.default.post(
-            name: .feedModelDidCheckWord,
-            object: self,
-            userInfo: [UserInfoKey.isCorrect: isCorrect]
-        )
+    func post(at index: Int) -> Post? {
+        guard posts.indices.contains(index) else { return nil }
+        return posts[index]
     }
 }

@@ -1,10 +1,10 @@
 import UIKit
 import StorageService
 
-class FeedViewController: UIViewController {
+final class FeedViewController: UIViewController {
 
-    // MARK: - Model
-    private let model = FeedModel(secretWord: "swift")
+    // MARK: - ViewModel
+    private let viewModel: FeedViewModel
 
     // MARK: - UI
     private let stackView: UIStackView = {
@@ -22,7 +22,7 @@ class FeedViewController: UIViewController {
         backgroundColor: .systemBlue,
         cornerRadius: 8
     ) { [weak self] in
-        self?.openFirstPost()
+        self?.openPost(at: 0)
     }
 
     private lazy var secondPostButton = CustomButton(
@@ -30,7 +30,7 @@ class FeedViewController: UIViewController {
         backgroundColor: .systemGreen,
         cornerRadius: 8
     ) { [weak self] in
-        self?.openSecondPost()
+        self?.openPost(at: 1)
     }
 
     private let guessTextField: UITextField = {
@@ -48,18 +48,26 @@ class FeedViewController: UIViewController {
         title: "Проверить слово",
         backgroundColor: .systemIndigo
     ) { [weak self] in
-        self?.checkGuess()
+        self?.viewModel.checkGuess(self?.guessTextField.text)
     }
 
     private let resultLabel: UILabel = {
         let label = UILabel()
-        label.text = "Введите слово для проверки"
-        label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 16, weight: .medium)
         return label
     }()
+
+    // MARK: - Initialization
+    init(viewModel: FeedViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -70,11 +78,8 @@ class FeedViewController: UIViewController {
 
         setupUI()
         setupConstraints()
-        subscribeToModel()
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
+        bindViewModel()
+        render(viewModel.state)
     }
 
     // MARK: - Setup
@@ -103,58 +108,34 @@ class FeedViewController: UIViewController {
         ])
     }
 
-    private func subscribeToModel() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleGuessResult),
-            name: .feedModelDidCheckWord,
-            object: model
-        )
+    // MARK: - Binding
+    private func bindViewModel() {
+        viewModel.onStateChanged = { [weak self] state in
+            self?.render(state)
+        }
     }
 
-    // MARK: - Guess flow
-    private func checkGuess() {
-        let word = guessTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
-        guard !word.isEmpty else {
+    private func render(_ state: FeedViewModel.GuessState) {
+        switch state {
+        case .idle:
+            resultLabel.text = "Введите слово для проверки"
+            resultLabel.textColor = .secondaryLabel
+        case .empty:
             resultLabel.text = "Введите слово"
             resultLabel.textColor = .secondaryLabel
-            return
+        case .correct:
+            resultLabel.text = "Верно"
+            resultLabel.textColor = .systemGreen
+        case .incorrect:
+            resultLabel.text = "Неверно"
+            resultLabel.textColor = .systemRed
         }
-
-        model.check(word: word)
     }
 
-    @objc private func handleGuessResult(_ notification: Notification) {
-        guard let isCorrect = notification.userInfo?[FeedModel.UserInfoKey.isCorrect] as? Bool else {
-            return
-        }
+    // MARK: - Navigation
+    private func openPost(at index: Int) {
+        guard let post = viewModel.post(at: index) else { return }
 
-        resultLabel.text = isCorrect ? "Верно" : "Неверно"
-        resultLabel.textColor = isCorrect ? .systemGreen : .systemRed
-    }
-
-    // MARK: - Posts
-    private func openFirstPost() {
-        let post = Post(
-            author: "Первый автор",
-            description: "Описание первого поста",
-            image: "post1",
-            likes: 100,
-            views: 150
-        )
-        let viewController = PostViewController(post: post)
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-
-    private func openSecondPost() {
-        let post = Post(
-            author: "Второй автор",
-            description: "Описание второго поста",
-            image: "post2",
-            likes: 200,
-            views: 250
-        )
         let viewController = PostViewController(post: post)
         navigationController?.pushViewController(viewController, animated: true)
     }

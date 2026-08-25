@@ -9,7 +9,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let tabBarController = UITabBarController()
 
-        let feedNav = UINavigationController(rootViewController: FeedViewController())
+        let feedModel = FeedModel(secretWord: "swift")
+        let feedViewModel = FeedViewModel(model: feedModel)
+        let feedViewController = FeedViewController(viewModel: feedViewModel)
+        let feedNav = UINavigationController(rootViewController: feedViewController)
         feedNav.tabBarItem = UITabBarItem(
             title: "Feed",
             image: UIImage(systemName: "list.bullet"),
