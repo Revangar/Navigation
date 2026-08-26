@@ -1,9 +1,14 @@
 import UIKit
 
+protocol ProfileViewControllerCoordinator: AnyObject {
+    func showPhotos()
+}
+
 class ProfileViewController: UIViewController {
 
     // MARK: - Properties
     private let user: User
+    weak var coordinator: ProfileViewControllerCoordinator?
 
     private let tableView: UITableView = {
         let tableView = UITableView()
@@ -129,7 +134,7 @@ extension ProfileViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
 
         if indexPath.section == 0 {
-            navigationController?.pushViewController(PhotosViewController(), animated: true)
+            coordinator?.showPhotos()
         }
     }
 }

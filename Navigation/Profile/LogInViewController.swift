@@ -1,10 +1,15 @@
 import UIKit
 
+protocol LogInViewControllerCoordinator: AnyObject {
+    func showProfile(for user: User)
+}
+
 class LogInViewController: UIViewController {
 
     // MARK: - Dependencies
     private let userService: UserService
     var loginDelegate: LoginViewControllerDelegate?
+    weak var coordinator: LogInViewControllerCoordinator?
 
     // MARK: - UI Elements
     private let scrollView: UIScrollView = {
@@ -225,9 +230,7 @@ class LogInViewController: UIViewController {
         }
 
         view.endEditing(true)
-
-        let profileViewController = ProfileViewController(user: user)
-        navigationController?.pushViewController(profileViewController, animated: true)
+        coordinator?.showProfile(for: user)
     }
 
     private func showLoginError() {

@@ -3,53 +3,17 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    private var appCoordinator: AppCoordinator?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = (scene as? UIWindowScene) else { return }
-
-        let tabBarController = UITabBarController()
-
-        let feedModel = FeedModel(secretWord: "swift")
-        let feedViewModel = FeedViewModel(model: feedModel)
-        let feedViewController = FeedViewController(viewModel: feedViewModel)
-        let feedNav = UINavigationController(rootViewController: feedViewController)
-        feedNav.tabBarItem = UITabBarItem(
-            title: "Feed",
-            image: UIImage(systemName: "list.bullet"),
-            tag: 0
-        )
-
-        let userService: UserService
-#if DEBUG
-        userService = TestUserService()
-#else
-        let avatar = UIImage(named: "avatar") ?? UIImage()
-        let currentUser = User(
-            login: "hipster",
-            fullName: "Hipster Cat",
-            avatar: avatar,
-            status: "Waiting for something..."
-        )
-        userService = CurrentUserService(user: currentUser)
-#endif
-
-        let loginFactory: LoginFactory = MyLoginFactory()
-        let logInViewController = LogInViewController(userService: userService)
-        logInViewController.loginDelegate = loginFactory.makeLoginInspector()
-
-        let profileNav = UINavigationController(rootViewController: logInViewController)
-        profileNav.tabBarItem = UITabBarItem(
-            title: "Profile",
-            image: UIImage(systemName: "person.crop.circle"),
-            tag: 1
-        )
-
-        tabBarController.viewControllers = [feedNav, profileNav]
+        guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = tabBarController
         self.window = window
-        window.makeKeyAndVisible()
+
+        let coordinator = AppCoordinator(window: window)
+        appCoordinator = coordinator
+        coordinator.start()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
