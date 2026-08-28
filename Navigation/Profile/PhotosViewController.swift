@@ -10,12 +10,20 @@ import iOSIntPackage
 
 final class PhotosViewController: UIViewController {
 
+    private struct BenchmarkCase {
+        let name: String
+        let sourceImages: [UIImage]
+        let filter: ColorFilter
+        let qos: QualityOfService
+    }
+
     // MARK: - Data
     private let sourcePhotos: [UIImage] = (1...20).compactMap { UIImage(named: "photo\($0)") }
     private var photos: [UIImage] = []
+    private var benchmarkResults: [String] = []
 
     // MARK: - Dependencies
-    private var imagePublisherFacade: ImagePublisherFacade?
+    private let imageProcessor = ImageProcessor()
 
     // MARK: - UI
     private lazy var collectionView: UICollectionView = {
@@ -40,20 +48,18 @@ final class PhotosViewController: UIViewController {
         super.viewDidLoad()
 
         title = "Photo Gallery"
+        photos = sourcePhotos
         setupCollectionView()
+        runBenchmarks()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
-        startImagePublishing()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
-        imagePublisherFacade?.removeSubscription(for: self)
-        imagePublisherFacade = nil
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 
@@ -69,32 +75,87 @@ final class PhotosViewController: UIViewController {
         ])
     }
 
-    private func startImagePublishing() {
-        photos.removeAll()
-        collectionView.reloadData()
-
-        let facade = ImagePublisherFacade()
-        imagePublisherFacade = facade
-        facade.subscribe(self)
-        facade.addImagesWithTimer(
-            time: 0.5,
-            repeat: 20,
-            userImages: sourcePhotos
-        )
+    // MARK: - Multithreading benchmark
+    private func runBenchmarks() {
+        benchmarkResults.removeAll()
+        processBenchmarkCase(at: 0, cases: makeBenchmarkCases())
     }
-}
 
-// MARK: - ImageLibrarySubscriber
-extension PhotosViewController: ImageLibrarySubscriber {
-    func receive(images: [UIImage]) {
-        photos = images
-        collectionView.reloadData()
-
-        guard !images.isEmpty else { return }
-
-        let lastItem = IndexPath(item: images.count - 1, section: 0)
-        collectionView.scrollToItem(at: lastItem, at: .bottom, animated: true)
+    private func makeBenchmarkCases() -> [BenchmarkCase] {
+        [
+            BenchmarkCase(
+                name: "userInteractive / chrome / 20 images",
+                sourceImages: sourcePhotos,
+                filter: .chrome,
+                qos: .userInteractive
+            ),
+            BenchmarkCase(
+                name: "userInitiated / noir / 12 images",
+                sourceImages: Array(sourcePhotos.prefix(12)),
+                filter: .noir,
+                qos: .userInitiated
+            ),
+            BenchmarkCase(
+                name: "utility / sepia / 16 images",
+                sourceImages: Array(sourcePhotos.prefix(16)),
+                filter: .sepia(intensity: 0.8),
+                qos: .utility
+            ),
+            BenchmarkCase(
+                name: "background / colorInvert / 20 images",
+                sourceImages: sourcePhotos,
+                filter: .colorInvert,
+                qos: .background
+            )
+        ]
     }
+
+    private func processBenchmarkCase(at index: Int, cases: [BenchmarkCase]) {
+        guard index < cases.count else {
+            print("\n=== ImageProcessor benchmark summary ===")
+            benchmarkResults.forEach { print($0) }
+            print("========================================\n")
+            return
+        }
+
+        let benchmarkCase = cases[index]
+        let startedAt = Date()
+
+        imageProcessor.processImagesOnThread(
+            sourceImages: benchmarkCase.sourceImages,
+            filter: benchmarkCase.filter,
+            qos: benchmarkCase.qos
+        ) { [weak self] processedCGImages in
+            let elapsed = Date().timeIntervalSince(startedAt)
+            let result = String(
+                format: "%@ — %.4f s",
+                benchmarkCase.name,
+                elapsed
+            )
+
+            print("[ImageProcessor benchmark] \(result)")
+
+            let processedImages = processedCGImages.compactMap { cgImage -> UIImage? in
+                guard let cgImage else { return nil }
+                return UIImage(cgImage: cgImage)
+            }
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+
+                self.benchmarkResults.append(result)
+                self.photos = processedImages
+                self.collectionView.reloadData()
+                self.processBenchmarkCase(at: index + 1, cases: cases)
+            }
+        }
+    }
+
+    // Фактическое время зависит от конкретного устройства и нагрузки системы,
+    // поэтому результаты не хардкодятся. Каждый замер начинается до вызова
+    // processImagesOnThread и заканчивается внутри completion после обработки.
+    // Реальные значения для всех QoS печатаются в Xcode Console строками
+    // "[ImageProcessor benchmark] ..." и итоговой сводкой после последнего теста.
 }
 
 // MARK: - UICollectionViewDataSource
