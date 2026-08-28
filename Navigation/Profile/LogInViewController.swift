@@ -8,6 +8,15 @@ class LogInViewController: UIViewController {
 
     // MARK: - Dependencies
     private let userService: UserService
+    private let bruteForcer = PasswordBruteForcer()
+    private let bruteForceQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.name = "ru.ilyatrundaev.navigation.bruteforce"
+        queue.qualityOfService = .userInitiated
+        queue.maxConcurrentOperationCount = 1
+        return queue
+    }()
+
     var loginDelegate: LoginViewControllerDelegate?
     weak var coordinator: LogInViewControllerCoordinator?
 
@@ -73,8 +82,6 @@ class LogInViewController: UIViewController {
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
         textField.leftView = paddingView
         textField.leftViewMode = .always
-        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
-        textField.rightViewMode = .always
         textField.heightAnchor.constraint(equalToConstant: 50).isActive = true
         return textField
     }()
@@ -94,10 +101,15 @@ class LogInViewController: UIViewController {
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
         textField.leftView = paddingView
         textField.leftViewMode = .always
-        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 50))
-        textField.rightViewMode = .always
         textField.heightAnchor.constraint(equalToConstant: 50).isActive = true
         return textField
+    }()
+
+    private let passwordActivityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.color = .systemBlue
+        indicator.hidesWhenStopped = true
+        return indicator
     }()
 
     private lazy var logInButton = CustomButton(
@@ -110,6 +122,16 @@ class LogInViewController: UIViewController {
         clipsToBounds: true
     ) { [weak self] in
         self?.logInButtonTapped()
+    }
+
+    private lazy var bruteForceButton = CustomButton(
+        title: "Подобрать пароль",
+        titleColor: .white,
+        backgroundColor: .systemOrange,
+        cornerRadius: 10,
+        font: .systemFont(ofSize: 16, weight: .medium)
+    ) { [weak self] in
+        self?.bruteForceButtonTapped()
     }
 
     // MARK: - Initialization
@@ -127,6 +149,7 @@ class LogInViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        setupPasswordActivityIndicator()
         setupKeyboardObservers()
         setupGestures()
     }
@@ -143,6 +166,7 @@ class LogInViewController: UIViewController {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        bruteForceQueue.cancelAllOperations()
     }
 
     // MARK: - Setup Methods
@@ -155,10 +179,19 @@ class LogInViewController: UIViewController {
         contentView.addSubview(logoImageView)
         contentView.addSubview(textFieldsStackView)
         contentView.addSubview(logInButton)
+        contentView.addSubview(bruteForceButton)
 
         textFieldsStackView.addArrangedSubview(emailTextField)
         textFieldsStackView.addArrangedSubview(separatorView)
         textFieldsStackView.addArrangedSubview(passwordTextField)
+    }
+
+    private func setupPasswordActivityIndicator() {
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
+        passwordActivityIndicator.center = CGPoint(x: 22, y: 25)
+        container.addSubview(passwordActivityIndicator)
+        passwordTextField.rightView = container
+        passwordTextField.rightViewMode = .always
     }
 
     private func setupConstraints() {
@@ -190,7 +223,12 @@ class LogInViewController: UIViewController {
             logInButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             logInButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             logInButton.heightAnchor.constraint(equalToConstant: 50),
-            logInButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -50)
+
+            bruteForceButton.topAnchor.constraint(equalTo: logInButton.bottomAnchor, constant: 12),
+            bruteForceButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            bruteForceButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            bruteForceButton.heightAnchor.constraint(equalToConstant: 50),
+            bruteForceButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -50)
         ])
     }
 
@@ -231,6 +269,51 @@ class LogInViewController: UIViewController {
 
         view.endEditing(true)
         coordinator?.showProfile(for: user)
+    }
+
+    private func bruteForceButtonTapped() {
+        guard bruteForceButton.isEnabled else { return }
+
+        let passwordLength = Int.random(in: 3...4)
+        let targetPassword = bruteForcer.makeRandomPassword(length: passwordLength)
+        let startedAt = Date()
+        let bruteForcer = bruteForcer
+
+        passwordTextField.text = nil
+        passwordTextField.isSecureTextEntry = true
+        passwordActivityIndicator.startAnimating()
+        bruteForceButton.isEnabled = false
+
+        print("[BruteForce] Started search for random \(passwordLength)-character password")
+
+        bruteForceQueue.addOperation { [weak self] in
+            let foundPassword = bruteForcer.bruteForce(password: targetPassword)
+            let elapsed = Date().timeIntervalSince(startedAt)
+
+            OperationQueue.main.addOperation { [weak self] in
+                guard let self else { return }
+
+                self.passwordActivityIndicator.stopAnimating()
+                self.bruteForceButton.isEnabled = true
+
+                guard let foundPassword else {
+                    self.passwordTextField.text = "Пароль не найден"
+                    self.passwordTextField.isSecureTextEntry = false
+                    print("[BruteForce] Password was not found")
+                    return
+                }
+
+                self.passwordTextField.text = foundPassword
+                self.passwordTextField.isSecureTextEntry = false
+                print(
+                    String(
+                        format: "[BruteForce] Found %@ in %.4f s",
+                        foundPassword,
+                        elapsed
+                    )
+                )
+            }
+        }
     }
 
     private func showLoginError() {
