@@ -11,6 +11,16 @@ final class FeedViewController: UIViewController {
     private let viewModel: FeedViewModel
     weak var coordinator: FeedViewControllerCoordinator?
 
+    // MARK: - Timer
+    private var feedTimer: Timer?
+    private var elapsedSeconds = 0
+    private let breakReminderThreshold = 30
+
+    // Полезный сценарий Timer: считаем непрерывное время, проведённое пользователем
+    // на экране Feed, и через 30 секунд напоминаем сделать короткий перерыв для глаз.
+    // Таймер добавляется в RunLoop.main в режиме .common, поэтому продолжает работать
+    // во время взаимодействия с интерфейсом. При уходе с Feed таймер инвалидируется.
+
     // MARK: - UI
     private let stackView: UIStackView = {
         let stackView = UIStackView()
@@ -20,6 +30,26 @@ final class FeedViewController: UIViewController {
         stackView.spacing = 10
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
+    }()
+
+    private let sessionTimerLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Время в ленте: 00:00"
+        label.textAlignment = .center
+        label.font = .monospacedDigitSystemFont(ofSize: 17, weight: .semibold)
+        label.textColor = .label
+        return label
+    }()
+
+    private let breakReminderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Пора сделать короткий перерыв для глаз 👀"
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.textColor = .systemOrange
+        label.isHidden = true
+        return label
     }()
 
     private lazy var firstPostButton = CustomButton(
@@ -87,10 +117,27 @@ final class FeedViewController: UIViewController {
         render(viewModel.state)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        startFeedTimer()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopFeedTimer()
+    }
+
+    deinit {
+        stopFeedTimer()
+    }
+
     // MARK: - Setup
     private func setupUI() {
         view.addSubview(stackView)
 
+        stackView.addArrangedSubview(sessionTimerLabel)
+        stackView.addArrangedSubview(breakReminderLabel)
+        stackView.setCustomSpacing(20, after: breakReminderLabel)
         stackView.addArrangedSubview(firstPostButton)
         stackView.addArrangedSubview(secondPostButton)
         stackView.setCustomSpacing(24, after: secondPostButton)
@@ -111,6 +158,45 @@ final class FeedViewController: UIViewController {
             checkGuessButton.heightAnchor.constraint(equalToConstant: 50),
             resultLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 24)
         ])
+    }
+
+    // MARK: - Timer
+    private func startFeedTimer() {
+        stopFeedTimer()
+
+        elapsedSeconds = 0
+        breakReminderLabel.isHidden = true
+        updateTimerLabel()
+
+        let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.handleTimerTick()
+        }
+        feedTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func stopFeedTimer() {
+        feedTimer?.invalidate()
+        feedTimer = nil
+    }
+
+    private func handleTimerTick() {
+        elapsedSeconds += 1
+        updateTimerLabel()
+
+        if elapsedSeconds >= breakReminderThreshold {
+            breakReminderLabel.isHidden = false
+        }
+    }
+
+    private func updateTimerLabel() {
+        let minutes = elapsedSeconds / 60
+        let seconds = elapsedSeconds % 60
+        sessionTimerLabel.text = String(
+            format: "Время в ленте: %02d:%02d",
+            minutes,
+            seconds
+        )
     }
 
     // MARK: - Binding
