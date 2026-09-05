@@ -36,6 +36,12 @@ final class FeedViewModel {
     }
 
     func post(at index: Int) -> Post? {
-        model.post(at: index)
+        switch model.post(at: index) {
+        case .success(let post):
+            return post
+        case .failure(let error):
+            print("[Feed] \(error.localizedDescription)")
+            return nil
+        }
     }
 }
