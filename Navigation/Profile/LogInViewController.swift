@@ -220,23 +220,45 @@ class LogInViewController: UIViewController {
         let login = emailTextField.text ?? ""
         let password = passwordTextField.text ?? ""
 
-        guard
-            let loginDelegate,
-            loginDelegate.check(login: login, password: password),
-            let user = userService.getUser(login: login)
-        else {
-            showLoginError()
-            return
+        do {
+            let user = try authenticate(login: login, password: password)
+            view.endEditing(true)
+            coordinator?.showProfile(for: user)
+        } catch {
+            showLoginError(error)
         }
-
-        view.endEditing(true)
-        coordinator?.showProfile(for: user)
     }
 
-    private func showLoginError() {
+    private func authenticate(login: String, password: String) throws -> User {
+        let normalizedLogin = login.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !normalizedLogin.isEmpty else {
+            throw NavigationError.emptyLogin
+        }
+
+        guard !password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw NavigationError.emptyPassword
+        }
+
+        guard let loginDelegate else {
+            throw NavigationError.authenticationUnavailable
+        }
+
+        guard loginDelegate.check(login: normalizedLogin, password: password) else {
+            throw NavigationError.invalidCredentials
+        }
+
+        guard let user = userService.getUser(login: normalizedLogin) else {
+            throw NavigationError.userNotFound(login: normalizedLogin)
+        }
+
+        return user
+    }
+
+    private func showLoginError(_ error: Error) {
         let alert = UIAlertController(
-            title: "Ошибка",
-            message: "Неверный логин или пароль",
+            title: "Ошибка авторизации",
+            message: error.localizedDescription,
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))

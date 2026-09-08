@@ -7,7 +7,13 @@ final class FeedModel {
     private let posts: [Post]
 
     init(secretWord: String = "swift") {
-        self.secretWord = secretWord
+        let normalizedSecretWord = secretWord.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !normalizedSecretWord.isEmpty else {
+            preconditionFailure("FeedModel requires a non-empty secretWord")
+        }
+
+        self.secretWord = normalizedSecretWord
         self.posts = [
             Post(
                 author: "Первый автор",
@@ -30,8 +36,11 @@ final class FeedModel {
         word.caseInsensitiveCompare(secretWord) == .orderedSame
     }
 
-    func post(at index: Int) -> Post? {
-        guard posts.indices.contains(index) else { return nil }
-        return posts[index]
+    func post(at index: Int) -> Result<Post, NavigationError> {
+        guard posts.indices.contains(index) else {
+            return .failure(.invalidPostIndex(index))
+        }
+
+        return .success(posts[index])
     }
 }
