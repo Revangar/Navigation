@@ -25,21 +25,37 @@ final class AppCoordinator: Coordinator {
             tag: 1
         )
 
+        let mediaNavigationController = UINavigationController()
+        mediaNavigationController.tabBarItem = UITabBarItem(
+            title: "Media",
+            image: UIImage(systemName: "play.rectangle.on.rectangle"),
+            tag: 2
+        )
+
         let feedCoordinator = FeedCoordinator(
             navigationController: feedNavigationController
         )
         let profileCoordinator = ProfileCoordinator(
             navigationController: profileNavigationController
         )
+        let mediaCoordinator = MediaCoordinator(
+            navigationController: mediaNavigationController
+        )
 
-        childCoordinators = [feedCoordinator, profileCoordinator]
+        childCoordinators = [
+            feedCoordinator,
+            profileCoordinator,
+            mediaCoordinator
+        ]
 
         feedCoordinator.start()
         profileCoordinator.start()
+        mediaCoordinator.start()
 
         tabBarController.viewControllers = [
             feedNavigationController,
-            profileNavigationController
+            profileNavigationController,
+            mediaNavigationController
         ]
 
         window.rootViewController = tabBarController
