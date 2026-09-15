@@ -9,15 +9,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        let configurations: [AppConfiguration] = [
-            .person("https://swapi.dev/api/people/8"),
-            .starship("https://swapi.dev/api/starships/3"),
-            .planet("https://swapi.dev/api/planets/5")
-        ]
+        if let configuration = AppConfiguration.allCases.randomElement() {
+            appConfiguration = configuration
 
-        guard let configuration = configurations.randomElement() else { return }
-        appConfiguration = configuration
-        NetworkService.request(for: configuration)
+            if let url = configuration.url {
+                NetworkService.request(url: url) { _ in }
+            }
+        }
 
         let window = UIWindow(windowScene: windowScene)
         self.window = window
