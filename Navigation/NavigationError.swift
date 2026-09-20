@@ -11,13 +11,13 @@ enum NavigationError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyLogin:
-            return "Введите логин."
+            return "Введите email."
         case .emptyPassword:
             return "Введите пароль."
         case .authenticationUnavailable:
             return "Сервис авторизации временно недоступен."
         case .invalidCredentials:
-            return "Неверный логин или пароль."
+            return "Неверный email или пароль."
         case .userNotFound(let login):
             return "Пользователь \(login) не найден."
         case .invalidPostIndex:
