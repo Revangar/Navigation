@@ -5,6 +5,8 @@ final class ProfileCoordinator: Coordinator {
 
     let navigationController: UINavigationController
 
+    private var loginInspector: LoginInspector?
+
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
@@ -14,30 +16,30 @@ final class ProfileCoordinator: Coordinator {
     }
 
     private func showLogin() {
-        let userService: UserService
-
-#if DEBUG
-        userService = TestUserService()
-#else
-        let avatar = UIImage(named: "avatar") ?? UIImage()
-        let currentUser = User(
-            login: "hipster",
-            fullName: "Hipster Cat",
-            avatar: avatar,
-            status: "Waiting for something..."
-        )
-        userService = CurrentUserService(user: currentUser)
-#endif
-
         let loginFactory: LoginFactory = MyLoginFactory()
-        let viewController = LogInViewController(userService: userService)
-        viewController.loginDelegate = loginFactory.makeLoginInspector()
+        let inspector = loginFactory.makeLoginInspector()
+        loginInspector = inspector
+
+        let viewController = LogInViewController(delegate: inspector)
         viewController.coordinator = self
 
         navigationController.setViewControllers([viewController], animated: false)
     }
 
-    func showProfile(for user: User) {
+    func showProfile(email: String) {
+        let avatar = UIImage(named: "avatar") ?? UIImage()
+        let displayName = email
+            .split(separator: "@")
+            .first
+            .map(String.init) ?? email
+
+        let user = User(
+            login: email,
+            fullName: displayName,
+            avatar: avatar,
+            status: "Firebase user"
+        )
+
         let viewController = ProfileViewController(user: user)
         viewController.coordinator = self
         navigationController.pushViewController(viewController, animated: true)
