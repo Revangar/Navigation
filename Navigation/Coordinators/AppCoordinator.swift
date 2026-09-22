@@ -11,27 +11,37 @@ final class AppCoordinator: Coordinator {
     }
 
     func start() {
+        let documentsNavigationController = UINavigationController()
+        documentsNavigationController.tabBarItem = UITabBarItem(
+            title: "Documents",
+            image: UIImage(systemName: "folder"),
+            tag: 0
+        )
+
         let feedNavigationController = UINavigationController()
         feedNavigationController.tabBarItem = UITabBarItem(
             title: "Feed",
             image: UIImage(systemName: "list.bullet"),
-            tag: 0
+            tag: 1
         )
 
         let profileNavigationController = UINavigationController()
         profileNavigationController.tabBarItem = UITabBarItem(
             title: "Profile",
             image: UIImage(systemName: "person.crop.circle"),
-            tag: 1
+            tag: 2
         )
 
         let mediaNavigationController = UINavigationController()
         mediaNavigationController.tabBarItem = UITabBarItem(
             title: "Media",
             image: UIImage(systemName: "play.rectangle.on.rectangle"),
-            tag: 2
+            tag: 3
         )
 
+        let documentsCoordinator = DocumentsCoordinator(
+            navigationController: documentsNavigationController
+        )
         let feedCoordinator = FeedCoordinator(
             navigationController: feedNavigationController
         )
@@ -43,20 +53,24 @@ final class AppCoordinator: Coordinator {
         )
 
         childCoordinators = [
+            documentsCoordinator,
             feedCoordinator,
             profileCoordinator,
             mediaCoordinator
         ]
 
+        documentsCoordinator.start()
         feedCoordinator.start()
         profileCoordinator.start()
         mediaCoordinator.start()
 
         tabBarController.viewControllers = [
+            documentsNavigationController,
             feedNavigationController,
             profileNavigationController,
             mediaNavigationController
         ]
+        tabBarController.selectedIndex = 0
 
         window.rootViewController = tabBarController
         window.makeKeyAndVisible()
