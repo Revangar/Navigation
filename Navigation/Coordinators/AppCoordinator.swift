@@ -4,75 +4,92 @@ final class AppCoordinator: Coordinator {
     var childCoordinators: [Coordinator] = []
 
     private let window: UIWindow
-    private let tabBarController = UITabBarController()
+    private let passwordStorage: PasswordStorage
+    private let appSettings: AppSettings
 
-    init(window: UIWindow) {
+    init(
+        window: UIWindow,
+        passwordStorage: PasswordStorage = KeychainPasswordService(),
+        appSettings: AppSettings = AppSettings()
+    ) {
         self.window = window
+        self.passwordStorage = passwordStorage
+        self.appSettings = appSettings
     }
 
     func start() {
+        let mode: PasswordViewController.Mode = passwordStorage.hasPassword
+            ? .unlock
+            : .create
+
+        showPasswordGate(mode: mode)
+    }
+
+    private func showPasswordGate(mode: PasswordViewController.Mode) {
+        childCoordinators = []
+
+        let passwordViewController = PasswordViewController(
+            passwordStorage: passwordStorage,
+            mode: mode
+        ) { [weak self] in
+            self?.showMainInterface()
+        }
+
+        let navigationController = UINavigationController(
+            rootViewController: passwordViewController
+        )
+
+        window.rootViewController = navigationController
+        window.makeKeyAndVisible()
+    }
+
+    private func showMainInterface() {
+        let tabBarController = UITabBarController()
+
         let documentsNavigationController = UINavigationController()
         documentsNavigationController.tabBarItem = UITabBarItem(
-            title: "Documents",
+            title: "Files",
             image: UIImage(systemName: "folder"),
             tag: 0
         )
 
-        let feedNavigationController = UINavigationController()
-        feedNavigationController.tabBarItem = UITabBarItem(
-            title: "Feed",
-            image: UIImage(systemName: "list.bullet"),
+        let settingsNavigationController = UINavigationController()
+        settingsNavigationController.tabBarItem = UITabBarItem(
+            title: "Settings",
+            image: UIImage(systemName: "gearshape"),
             tag: 1
         )
 
-        let profileNavigationController = UINavigationController()
-        profileNavigationController.tabBarItem = UITabBarItem(
-            title: "Profile",
-            image: UIImage(systemName: "person.crop.circle"),
-            tag: 2
-        )
-
-        let mediaNavigationController = UINavigationController()
-        mediaNavigationController.tabBarItem = UITabBarItem(
-            title: "Media",
-            image: UIImage(systemName: "play.rectangle.on.rectangle"),
-            tag: 3
-        )
-
         let documentsCoordinator = DocumentsCoordinator(
-            navigationController: documentsNavigationController
+            navigationController: documentsNavigationController,
+            appSettings: appSettings
         )
-        let feedCoordinator = FeedCoordinator(
-            navigationController: feedNavigationController
-        )
-        let profileCoordinator = ProfileCoordinator(
-            navigationController: profileNavigationController
-        )
-        let mediaCoordinator = MediaCoordinator(
-            navigationController: mediaNavigationController
+        let settingsCoordinator = SettingsCoordinator(
+            navigationController: settingsNavigationController,
+            appSettings: appSettings,
+            passwordStorage: passwordStorage
         )
 
         childCoordinators = [
             documentsCoordinator,
-            feedCoordinator,
-            profileCoordinator,
-            mediaCoordinator
+            settingsCoordinator
         ]
 
         documentsCoordinator.start()
-        feedCoordinator.start()
-        profileCoordinator.start()
-        mediaCoordinator.start()
+        settingsCoordinator.start()
 
         tabBarController.viewControllers = [
             documentsNavigationController,
-            feedNavigationController,
-            profileNavigationController,
-            mediaNavigationController
+            settingsNavigationController
         ]
         tabBarController.selectedIndex = 0
 
-        window.rootViewController = tabBarController
-        window.makeKeyAndVisible()
+        UIView.transition(
+            with: window,
+            duration: 0.25,
+            options: .transitionCrossDissolve
+        ) {
+            self.window.rootViewController = tabBarController
+        }
     }
 }
