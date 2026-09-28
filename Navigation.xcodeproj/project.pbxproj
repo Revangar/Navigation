@@ -12,6 +12,7 @@
 		B0C5A0013005000100ABCDEF /* iOSIntPackage in Frameworks */ = {isa = PBXBuildFile; productRef = B0C5A0033005000100ABCDEF /* iOSIntPackage */; };
 		FB2200013005000100ABC001 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = FB2200043005000100ABC004 /* FirebaseCore */; };
 		FB2200023005000100ABC002 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FB2200053005000100ABC005 /* FirebaseAuth */; };
+		RL2300013005000100ABC001 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = RL2300033005000100ABC003 /* RealmSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +79,7 @@
 				B0C5A0013005000100ABCDEF /* iOSIntPackage in Frameworks */,
 				FB2200013005000100ABC001 /* FirebaseCore in Frameworks */,
 				FB2200023005000100ABC002 /* FirebaseAuth in Frameworks */,
+				RL2300013005000100ABC001 /* RealmSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,6 +136,7 @@
 				B0C5A0033005000100ABCDEF /* iOSIntPackage */,
 				FB2200043005000100ABC004 /* FirebaseCore */,
 				FB2200053005000100ABC005 /* FirebaseAuth */,
+				RL2300033005000100ABC003 /* RealmSwift */,
 			);
 			productName = Navigation;
 			productReference = B0FD4E172DD67F46001C2554 /* Navigation.app */;
@@ -191,6 +194,7 @@
 			packageReferences = (
 				B0C5A0023005000100ABCDEF /* XCRemoteSwiftPackageReference "iOSIntPackage" */,
 				FB2200033005000100ABC003 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				RL2300023005000100ABC002 /* XCRemoteSwiftPackageReference "realm-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B0FD4E182DD67F46001C2554 /* Products */;
@@ -533,6 +537,14 @@
 				minimumVersion = 12.19.2;
 			};
 		};
+		RL2300023005000100ABC002 /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 20.0.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -550,6 +562,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FB2200033005000100ABC003 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		RL2300033005000100ABC003 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = RL2300023005000100ABC002 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
