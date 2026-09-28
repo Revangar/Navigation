@@ -35,7 +35,7 @@ final class DocumentsStorageService {
         self.fileManager = fileManager
     }
 
-    func loadItems() throws -> [DocumentItem] {
+    func loadItems(sortAscending: Bool) throws -> [DocumentItem] {
         let documentsURL = try documentsDirectoryURL()
 
         let resourceKeys: Set<URLResourceKey> = [
@@ -64,16 +64,13 @@ final class DocumentsStorageService {
                 modificationDate: values.contentModificationDate
             )
         }
-        .sorted {
-            switch ($0.modificationDate, $1.modificationDate) {
-            case let (left?, right?):
-                return left > right
-            case (.some, .none):
-                return true
-            case (.none, .some):
-                return false
-            case (.none, .none):
-                return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        .sorted { left, right in
+            let comparison = left.name.localizedCaseInsensitiveCompare(right.name)
+
+            if sortAscending {
+                return comparison == .orderedAscending
+            } else {
+                return comparison == .orderedDescending
             }
         }
     }

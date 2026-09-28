@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 final class DocumentsViewController: UIViewController {
 
     private let storageService: DocumentsStorageService
+    private let appSettings: AppSettings
     private var items: [DocumentItem] = []
 
     private let tableView: UITableView = {
@@ -28,8 +29,12 @@ final class DocumentsViewController: UIViewController {
         return label
     }()
 
-    init(storageService: DocumentsStorageService) {
+    init(
+        storageService: DocumentsStorageService,
+        appSettings: AppSettings
+    ) {
         self.storageService = storageService
+        self.appSettings = appSettings
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -94,7 +99,9 @@ final class DocumentsViewController: UIViewController {
 
     private func reloadDocuments() {
         do {
-            items = try storageService.loadItems()
+            items = try storageService.loadItems(
+                sortAscending: appSettings.sortAscending
+            )
             tableView.reloadData()
             updateEmptyState()
         } catch {
