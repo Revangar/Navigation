@@ -10,12 +10,40 @@ final class AppCoordinator: Coordinator {
     }
 
     func start() {
-        let quotesCoordinator = QuotesCoordinator()
-        childCoordinators = [quotesCoordinator]
+        let likedPostsRepository = CoreDataPostRepository()
 
-        quotesCoordinator.start()
+        let postsCoordinator = CoreDataPostsCoordinator(
+            repository: likedPostsRepository
+        )
 
-        window.rootViewController = quotesCoordinator.tabBarController
+        let profileNavigationController = UINavigationController()
+        profileNavigationController.tabBarItem = UITabBarItem(
+            title: "Профиль",
+            image: UIImage(systemName: "person.crop.circle"),
+            tag: 1
+        )
+
+        let profileCoordinator = ProfileCoordinator(
+            navigationController: profileNavigationController
+        )
+
+        childCoordinators = [
+            postsCoordinator,
+            profileCoordinator
+        ]
+
+        postsCoordinator.start()
+        profileCoordinator.start()
+
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = [
+            postsCoordinator.feedNavigationController,
+            profileNavigationController,
+            postsCoordinator.favoritesNavigationController
+        ]
+        tabBarController.selectedIndex = 0
+
+        window.rootViewController = tabBarController
         window.makeKeyAndVisible()
     }
 }
