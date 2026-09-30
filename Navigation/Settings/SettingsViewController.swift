@@ -113,6 +113,16 @@ final class SettingsViewController: UITableViewController {
         appSettings.sortAscending = sortingSwitch.isOn
 
         let indexPath = IndexPath(row: 0, section: 0)
-        tableView.reloadRows(at: [indexPath], with: .none)
+
+        guard let cell = tableView.cellForRow(at: indexPath) else {
+            return
+        }
+
+        var configuration = cell.defaultContentConfiguration()
+        configuration.text = "Сортировка"
+        configuration.secondaryText = sortingSwitch.isOn
+            ? "По алфавиту"
+            : "В обратном порядке"
+        cell.contentConfiguration = configuration
     }
 }
