@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="26000" systemVersion="" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="LikedPostEntity" representedClassName="LikedPostEntity" syncable="YES" codeGenerationType="manual/none">
+        <attribute name="author" optional="NO" attributeType="String"/>
+        <attribute name="identifier" optional="NO" attributeType="String"/>
+        <attribute name="image" optional="NO" attributeType="String"/>
+        <attribute name="likes" optional="NO" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="postDescription" optional="NO" attributeType="String"/>
+        <attribute name="savedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="views" optional="NO" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <elements>
+        <element name="LikedPostEntity" positionX="-63" positionY="-18" width="128" height="149"/>
+    </elements>
+</model>

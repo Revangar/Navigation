@@ -30,15 +30,19 @@ final class RealmQuoteRepository: QuoteRepository {
         quoteObject.value = quote.value
         quoteObject.loadedAt = Date()
 
-        let normalizedCategories = Array(
-            Set(
-                quote.categories
-                    .map {
-                        $0.trimmingCharacters(in: .whitespacesAndNewlines)
-                            .lowercased()
-                    }
-                    .filter { !$0.isEmpty }
-            )
+        let normalizedCategorySet = Set(
+            quote.categories
+                .map {
+                    $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                        .lowercased()
+                }
+                .filter { !$0.isEmpty }
+        )
+
+        let normalizedCategories = (
+            normalizedCategorySet.isEmpty
+                ? ["без категории"]
+                : Array(normalizedCategorySet)
         )
         .sorted()
 
