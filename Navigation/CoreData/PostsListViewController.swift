@@ -1,3 +1,4 @@
+import CoreData
 import StorageService
 import UIKit
 
@@ -19,13 +20,13 @@ final class PostsListViewController: UITableViewController {
 
     private let mode: Mode
     private let repository: LikedPostRepository
-    private var posts: [Post] = []
+
+    // The feed is static course content. Favorites come from the FRC.
+    private let feedPosts = PostsStorage.posts
+    private var fetchedResultsController: NSFetchedResultsController<LikedPostEntity>?
     private var selectedAuthor: String?
 
-    init(
-        mode: Mode,
-        repository: LikedPostRepository
-    ) {
+    init(mode: Mode, repository: LikedPostRepository) {
         self.mode = mode
         self.repository = repository
         super.init(style: .plain)
@@ -33,6 +34,10 @@ final class PostsListViewController: UITableViewController {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        fetchedResultsController?.delegate = nil
     }
 
     override func viewDidLoad() {
@@ -51,21 +56,20 @@ final class PostsListViewController: UITableViewController {
             configureDoubleTapGesture()
         case .favorites:
             configureFavoritesNavigation()
+            configureFetchedResultsController()
         }
-
-        reloadPosts()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        reloadPosts()
     }
 
     override func tableView(
         _ tableView: UITableView,
         numberOfRowsInSection section: Int
     ) -> Int {
-        posts.count
+        switch mode {
+        case .feed:
+            return feedPosts.count
+        case .favorites:
+            return fetchedResultsController?.sections?.first?.numberOfObjects ?? 0
+        }
     }
 
     override func tableView(
@@ -76,12 +80,13 @@ final class PostsListViewController: UITableViewController {
             let cell = tableView.dequeueReusableCell(
                 withIdentifier: "PostTableViewCell",
                 for: indexPath
-            ) as? PostTableViewCell
+            ) as? PostTableViewCell,
+            let post = post(at: indexPath)
         else {
             return UITableViewCell()
         }
 
-        cell.configure(with: posts[indexPath.row])
+        cell.configure(with: post)
         return cell
     }
 
@@ -103,11 +108,9 @@ final class PostsListViewController: UITableViewController {
         _ tableView: UITableView,
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
     ) -> UISwipeActionsConfiguration? {
-        guard mode == .favorites, posts.indices.contains(indexPath.row) else {
+        guard mode == .favorites, let post = post(at: indexPath) else {
             return nil
         }
-
-        let post = posts[indexPath.row]
 
         let deleteAction = UIContextualAction(
             style: .destructive,
@@ -119,26 +122,15 @@ final class PostsListViewController: UITableViewController {
             }
 
             self.repository.delete(post) { [weak self] result in
-                guard let self else {
-                    completion(false)
-                    return
-                }
-
                 switch result {
                 case .success(let deleted):
+                    // Never mutate the table manually here: the FRC delegate
+                    // applies the deletion after viewContext merges the save.
                     completion(deleted)
-
-                    if deleted {
-                        // Refetch after the swipe action finishes. The author
-                        // filter might have changed while Core Data was deleting.
-                        DispatchQueue.main.async { [weak self] in
-                            self?.reloadPosts()
-                        }
-                    }
 
                 case .failure(let error):
                     completion(false)
-                    self.showError(error)
+                    self?.showError(error)
                 }
             }
         }
@@ -152,21 +144,44 @@ final class PostsListViewController: UITableViewController {
         return configuration
     }
 
-    private func reloadPosts() {
+    private func post(at indexPath: IndexPath) -> Post? {
         switch mode {
         case .feed:
-            posts = PostsStorage.posts
-            tableView.reloadData()
-            tableView.backgroundView = nil
+            guard feedPosts.indices.contains(indexPath.row) else {
+                return nil
+            }
+            return feedPosts[indexPath.row]
 
         case .favorites:
-            do {
-                posts = try repository.fetchLikedPosts(author: selectedAuthor)
-                tableView.reloadData()
-                updateFavoritesEmptyState()
-            } catch {
-                showError(error)
+            guard let controller = fetchedResultsController,
+                  let sections = controller.sections,
+                  sections.indices.contains(indexPath.section),
+                  indexPath.row < sections[indexPath.section].numberOfObjects
+            else {
+                return nil
             }
+            return controller.object(at: indexPath).makePost()
+        }
+    }
+
+    private func configureFetchedResultsController() {
+        guard mode == .favorites else { return }
+
+        fetchedResultsController?.delegate = nil
+
+        do {
+            let controller = try repository.makeFetchedResultsController(
+                author: selectedAuthor
+            )
+            try controller.performFetch()
+
+            fetchedResultsController = controller
+            controller.delegate = self
+
+            tableView.reloadData()
+            updateFavoritesEmptyState()
+        } catch {
+            showError(error)
         }
     }
 
@@ -200,12 +215,12 @@ final class PostsListViewController: UITableViewController {
     @objc private func searchAuthorTapped() {
         let alert = UIAlertController(
             title: "Поиск по автору",
-            message: "Введите точное имя автора публикации.",
+            message: "Введите часть имени автора публикации.",
             preferredStyle: .alert
         )
 
         alert.addTextField { [selectedAuthor] textField in
-            textField.placeholder = "Имя автора"
+            textField.placeholder = "Часть имени автора"
             textField.text = selectedAuthor
             textField.autocorrectionType = .no
             textField.autocapitalizationType = .none
@@ -223,7 +238,7 @@ final class PostsListViewController: UITableViewController {
                     .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
                 self.selectedAuthor = author.isEmpty ? nil : author
-                self.reloadPosts()
+                self.configureFetchedResultsController()
             }
         )
 
@@ -232,22 +247,17 @@ final class PostsListViewController: UITableViewController {
 
     @objc private func resetAuthorTapped() {
         selectedAuthor = nil
-        reloadPosts()
+        configureFetchedResultsController()
     }
 
     @objc private func handleDoubleTap(
         _ gesture: UITapGestureRecognizer
     ) {
-        let location = gesture.location(in: tableView)
-
-        guard
-            let indexPath = tableView.indexPathForRow(at: location),
-            posts.indices.contains(indexPath.row)
-        else {
+        guard let indexPath = tableView.indexPathForRow(
+            at: gesture.location(in: tableView)
+        ), let post = post(at: indexPath) else {
             return
         }
-
-        let post = posts[indexPath.row]
 
         repository.save(post) { [weak self] result in
             guard let self else { return }
@@ -272,7 +282,10 @@ final class PostsListViewController: UITableViewController {
     }
 
     private func updateFavoritesEmptyState() {
-        guard posts.isEmpty else {
+        guard mode == .favorites else { return }
+
+        let isEmpty = fetchedResultsController?.fetchedObjects?.isEmpty ?? true
+        guard isEmpty else {
             tableView.backgroundView = nil
             return
         }
@@ -284,22 +297,16 @@ final class PostsListViewController: UITableViewController {
         label.textAlignment = .center
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
-
         tableView.backgroundView = label
     }
 
-    private func showMessage(
-        title: String,
-        message: String
-    ) {
+    private func showMessage(title: String, message: String) {
         let alert = UIAlertController(
             title: title,
             message: message,
             preferredStyle: .alert
         )
-        alert.addAction(
-            UIAlertAction(title: "OK", style: .default)
-        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
 
@@ -308,5 +315,56 @@ final class PostsListViewController: UITableViewController {
             title: "Ошибка Core Data",
             message: error.localizedDescription
         )
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+
+extension PostsListViewController: NSFetchedResultsControllerDelegate {
+
+    func controllerWillChangeContent(
+        _ controller: NSFetchedResultsController<NSFetchRequestResult>
+    ) {
+        tableView.beginUpdates()
+    }
+
+    func controller(
+        _ controller: NSFetchedResultsController<NSFetchRequestResult>,
+        didChange anObject: Any,
+        at indexPath: IndexPath?,
+        for type: NSFetchedResultsChangeType,
+        newIndexPath: IndexPath?
+    ) {
+        switch type {
+        case .insert:
+            if let newIndexPath {
+                tableView.insertRows(at: [newIndexPath], with: .automatic)
+            }
+
+        case .delete:
+            if let indexPath {
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+            }
+
+        case .update:
+            if let indexPath {
+                tableView.reloadRows(at: [indexPath], with: .none)
+            }
+
+        case .move:
+            if let indexPath, let newIndexPath {
+                tableView.moveRow(at: indexPath, to: newIndexPath)
+            }
+
+        @unknown default:
+            break
+        }
+    }
+
+    func controllerDidChangeContent(
+        _ controller: NSFetchedResultsController<NSFetchRequestResult>
+    ) {
+        tableView.endUpdates()
+        updateFavoritesEmptyState()
     }
 }
