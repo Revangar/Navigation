@@ -7,85 +7,154 @@ enum LikedPostSaveResult {
     case alreadySaved
 }
 
-protocol LikedPostRepository {
-    func save(_ post: Post) throws -> LikedPostSaveResult
-    func fetchLikedPosts() throws -> [Post]
+protocol LikedPostRepository: AnyObject {
+    func save(
+        _ post: Post,
+        completion: @escaping (Result<LikedPostSaveResult, Error>) -> Void
+    )
+
+    func delete(
+        _ post: Post,
+        completion: @escaping (Result<Bool, Error>) -> Void
+    )
+
+    func fetchLikedPosts(author: String?) throws -> [Post]
 }
 
 final class CoreDataPostRepository: LikedPostRepository {
 
     private let container: NSPersistentContainer
-    private var persistentStoreError: Error?
+    private let backgroundContext: NSManagedObjectContext
+    private let persistentStoreError: Error?
 
     init(container: NSPersistentContainer = NSPersistentContainer(name: "LikedPosts")) {
         self.container = container
 
-        container.persistentStoreDescriptions.first?
-            .shouldAddStoreAsynchronously = false
-
-        container.loadPersistentStores { [weak self] _, error in
-            self?.persistentStoreError = error
+        // Finish store loading before creating a write context.
+        container.persistentStoreDescriptions.forEach {
+            $0.shouldAddStoreAsynchronously = false
+            $0.shouldMigrateStoreAutomatically = true
+            $0.shouldInferMappingModelAutomatically = true
         }
 
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        var loadError: Error?
+        container.loadPersistentStores { _, error in
+            if let error {
+                loadError = error
+            }
+        }
+
+        persistentStoreError = loadError
+
+        let writer = container.newBackgroundContext()
+        writer.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        backgroundContext = writer
+
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
     }
 
-    func save(_ post: Post) throws -> LikedPostSaveResult {
-        try ensurePersistentStoreLoaded()
-
-        let context = container.viewContext
-        let identifier = makeIdentifier(for: post)
-
-        let request = NSFetchRequest<LikedPostEntity>(
-            entityName: "LikedPostEntity"
-        )
-        request.fetchLimit = 1
-        request.predicate = NSPredicate(
-            format: "identifier == %@",
-            identifier
-        )
-
-        if try context.fetch(request).first != nil {
-            return .alreadySaved
+    func save(
+        _ post: Post,
+        completion: @escaping (Result<LikedPostSaveResult, Error>) -> Void
+    ) {
+        if let persistentStoreError {
+            finish(.failure(persistentStoreError), completion: completion)
+            return
         }
 
-        let entity = LikedPostEntity(context: context)
-        entity.identifier = identifier
-        entity.author = post.author
-        entity.postDescription = post.description
-        entity.image = post.image
-        entity.likes = Int64(post.likes)
-        entity.views = Int64(post.views)
-        entity.savedAt = Date()
+        backgroundContext.perform { [self] in
+            do {
+                let request = request(for: post)
+                let isDuplicate = try !backgroundContext.fetch(request).isEmpty
 
-        try context.save()
+                guard !isDuplicate else {
+                    finish(.success(.alreadySaved), completion: completion)
+                    return
+                }
 
-        return .saved
+                let entity = LikedPostEntity(context: backgroundContext)
+                entity.identifier = makeIdentifier(for: post)
+                entity.author = post.author
+                entity.postDescription = post.description
+                entity.image = post.image
+                entity.likes = Int64(post.likes)
+                entity.views = Int64(post.views)
+                entity.savedAt = Date()
+
+                try backgroundContext.save()
+                finish(.success(.saved), completion: completion)
+            } catch {
+                backgroundContext.rollback()
+                finish(.failure(error), completion: completion)
+            }
+        }
     }
 
-    func fetchLikedPosts() throws -> [Post] {
+    func delete(
+        _ post: Post,
+        completion: @escaping (Result<Bool, Error>) -> Void
+    ) {
+        if let persistentStoreError {
+            finish(.failure(persistentStoreError), completion: completion)
+            return
+        }
+
+        backgroundContext.perform { [self] in
+            do {
+                let request = request(for: post)
+                request.fetchLimit = 1
+
+                guard let object = try backgroundContext.fetch(request).first else {
+                    finish(.success(false), completion: completion)
+                    return
+                }
+
+                backgroundContext.delete(object)
+                try backgroundContext.save()
+
+                finish(.success(true), completion: completion)
+            } catch {
+                backgroundContext.rollback()
+                finish(.failure(error), completion: completion)
+            }
+        }
+    }
+
+    // Read on the UI thread's viewContext, returning plain Post values rather
+    // than leaking thread-confined managed objects into view controllers.
+    func fetchLikedPosts(author: String? = nil) throws -> [Post] {
         try ensurePersistentStoreLoaded()
 
         let request = NSFetchRequest<LikedPostEntity>(
             entityName: "LikedPostEntity"
         )
         request.sortDescriptors = [
-            NSSortDescriptor(
-                key: "savedAt",
-                ascending: false
-            )
+            NSSortDescriptor(key: "savedAt", ascending: false)
         ]
+        request.fetchBatchSize = 25
 
-        return try container.viewContext
-            .fetch(request)
+        if let author, !author.isEmpty {
+            request.predicate = NSPredicate(
+                format: "author ==[c] %@",
+                author
+            )
+        }
+
+        return try container.viewContext.fetch(request)
             .map { $0.makePost() }
     }
 
-    private func ensurePersistentStoreLoaded() throws {
-        if let persistentStoreError {
-            throw persistentStoreError
-        }
+    private func request(for post: Post) -> NSFetchRequest<LikedPostEntity> {
+        let request = NSFetchRequest<LikedPostEntity>(
+            entityName: "LikedPostEntity"
+        )
+        request.fetchLimit = 1
+        request.predicate = NSPredicate(
+            format: "identifier == %@",
+            makeIdentifier(for: post)
+        )
+        return request
     }
 
     private func makeIdentifier(for post: Post) -> String {
@@ -95,5 +164,20 @@ final class CoreDataPostRepository: LikedPostRepository {
             post.image
         ]
         .joined(separator: "|")
+    }
+
+    private func ensurePersistentStoreLoaded() throws {
+        if let persistentStoreError {
+            throw persistentStoreError
+        }
+    }
+
+    private func finish<T>(
+        _ result: Result<T, Error>,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
+        DispatchQueue.main.async {
+            completion(result)
+        }
     }
 }
