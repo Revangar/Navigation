@@ -18,7 +18,9 @@ protocol LikedPostRepository: AnyObject {
         completion: @escaping (Result<Bool, Error>) -> Void
     )
 
-    func fetchLikedPosts(author: String?) throws -> [Post]
+    func makeFetchedResultsController(
+        author: String?
+    ) throws -> NSFetchedResultsController<LikedPostEntity>
 }
 
 final class CoreDataPostRepository: LikedPostRepository {
@@ -121,28 +123,35 @@ final class CoreDataPostRepository: LikedPostRepository {
         }
     }
 
-    // Read on the UI thread's viewContext, returning plain Post values rather
-    // than leaking thread-confined managed objects into view controllers.
-    func fetchLikedPosts(author: String? = nil) throws -> [Post] {
+    // A fresh controller per filter avoids shared fetch state and cache
+    // invalidation. The FRC is tied to viewContext (main queue only).
+    func makeFetchedResultsController(
+        author: String?
+    ) throws -> NSFetchedResultsController<LikedPostEntity> {
         try ensurePersistentStoreLoaded()
 
         let request = NSFetchRequest<LikedPostEntity>(
             entityName: "LikedPostEntity"
         )
         request.sortDescriptors = [
-            NSSortDescriptor(key: "savedAt", ascending: false)
+            NSSortDescriptor(key: "savedAt", ascending: false),
+            NSSortDescriptor(key: "identifier", ascending: true)
         ]
         request.fetchBatchSize = 25
 
         if let author, !author.isEmpty {
             request.predicate = NSPredicate(
-                format: "author ==[c] %@",
+                format: "author CONTAINS[c] %@",
                 author
             )
         }
 
-        return try container.viewContext.fetch(request)
-            .map { $0.makePost() }
+        return NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: container.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
     }
 
     private func request(for post: Post) -> NSFetchRequest<LikedPostEntity> {
