@@ -10,40 +10,14 @@ final class AppCoordinator: Coordinator {
     }
 
     func start() {
-        let likedPostsRepository = CoreDataPostRepository()
+        // IOSDT 2.7 continues the Chuck Norris Realm app from assignment 2.3.
+        // The Core Data implementation from 2.4-2.6 remains in the project.
+        let quotesCoordinator = QuotesCoordinator()
+        childCoordinators = [quotesCoordinator]
 
-        let postsCoordinator = CoreDataPostsCoordinator(
-            repository: likedPostsRepository
-        )
+        quotesCoordinator.start()
 
-        let profileNavigationController = UINavigationController()
-        profileNavigationController.tabBarItem = UITabBarItem(
-            title: "Профиль",
-            image: UIImage(systemName: "person.crop.circle"),
-            tag: 1
-        )
-
-        let profileCoordinator = ProfileCoordinator(
-            navigationController: profileNavigationController
-        )
-
-        childCoordinators = [
-            postsCoordinator,
-            profileCoordinator
-        ]
-
-        postsCoordinator.start()
-        profileCoordinator.start()
-
-        let tabBarController = UITabBarController()
-        tabBarController.viewControllers = [
-            postsCoordinator.feedNavigationController,
-            profileNavigationController,
-            postsCoordinator.favoritesNavigationController
-        ]
-        tabBarController.selectedIndex = 0
-
-        window.rootViewController = tabBarController
+        window.rootViewController = quotesCoordinator.tabBarController
         window.makeKeyAndVisible()
     }
 }
