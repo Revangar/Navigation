@@ -15,8 +15,22 @@ protocol QuoteRepository {
 
 final class RealmQuoteRepository: QuoteRepository {
 
+    private let configurationProvider: EncryptedRealmConfigurationProvider
+
+    init(
+        configurationProvider: EncryptedRealmConfigurationProvider =
+            EncryptedRealmConfigurationProvider()
+    ) {
+        self.configurationProvider = configurationProvider
+    }
+
+    private func openRealm() throws -> Realm {
+        let configuration = try configurationProvider.configuration()
+        return try Realm(configuration: configuration)
+    }
+
     func save(_ quote: ChuckNorrisQuoteDTO) throws -> QuoteSaveResult {
-        let realm = try Realm()
+        let realm = try openRealm()
 
         if let duplicate = existingQuote(
             for: quote,
@@ -71,7 +85,7 @@ final class RealmQuoteRepository: QuoteRepository {
     }
 
     func allQuotes() throws -> [StoredQuote] {
-        let realm = try Realm()
+        let realm = try openRealm()
 
         return realm.objects(QuoteObject.self)
             .sorted(byKeyPath: "loadedAt", ascending: false)
@@ -79,7 +93,7 @@ final class RealmQuoteRepository: QuoteRepository {
     }
 
     func allCategories() throws -> [String] {
-        let realm = try Realm()
+        let realm = try openRealm()
 
         return realm.objects(QuoteCategoryObject.self)
             .sorted(byKeyPath: "name", ascending: true)
@@ -87,7 +101,7 @@ final class RealmQuoteRepository: QuoteRepository {
     }
 
     func quotes(in category: String) throws -> [StoredQuote] {
-        let realm = try Realm()
+        let realm = try openRealm()
 
         guard let categoryObject = realm.object(
             ofType: QuoteCategoryObject.self,
